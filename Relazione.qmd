@@ -1,0 +1,25 @@
+---
+title: "Riconoscimento di Gesture tramite segnali EMG"
+author: "Elias Ezequiel Moreno matricola n°244211"
+format: pdf
+editor: visual
+---
+
+## 1. Definizione del Problema e Obiettivo
+
+L'obiettivo di questo progetto è addestrare un modello di Deep Learning, valutandone le prestazioni nel riconoscimento dei gesti della mano.
+
+Il compito che deve svolgere il modello è l'analisi di segnali elettromiografici, ricavati da sensori posti sull'avambraccio. La prima analisi si è svolta con un dataset ridotto, impostando così il problema come una più semplice **classificazione binaria**, dove vengono dati al dataset solo due tipi di gesti: **Pugno** e **Mano aperta**.
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
