@@ -9,17 +9,20 @@ editor: visual
 
 L'obiettivo di questo progetto è addestrare un modello di Deep Learning, valutandone le prestazioni nel riconoscimento dei gesti della mano.
 
-Il compito che deve svolgere il modello è l'analisi di segnali elettromiografici, ricavati da sensori posti sull'avambraccio. La prima analisi si è svolta con un dataset ridotto, impostando così il problema come una più semplice **classificazione binaria**, dove vengono dati al dataset solo due tipi di gesti: **Pugno** e **Mano aperta**.
+Il compito che deve svolgere il modello è l'analisi di segnali elettromiografici, ricavati da sensori posti sull'avambraccio. La prima analisi si è svolta con un dataset ridotto, impostando così il problema come una più semplice **classificazione binaria**, dove vengono dati al dataset solo due tipi di gesti: **Pugno** e **Mano a riposo**.
 
-```{r}
-1 + 1
-```
+### 1.1 Composizione del Dataset
 
-You can add options to executable code like this
+Il data proveniente dalla **UCI Machine Learning Repository** è composto da ben 32 cartelle, ciascuna rappresentante un individuo sottoposto alle analisi tramite EMG. L'analisi è svolta tramite un dispositivo con 8 sensori equidistanti che andranno a raccogliere segnali muscolari. Ad ogni partecipante e richiesto di di svolgere due serie dove si eseguono 6/7 gesti mantenuti per 3 secondi, seguita da una fase di riposo di 3 secondi. Ciascuna colonna rappresenta un informazione distinta:
 
-```{r}
-#| echo: false
-2 * 2
-```
+-   1° Colonna: è la **marcatura temporale**, ossia l'istante di tempo in cui viene svolta l'azione
 
-The `echo: false` option disables the printing of code (only output is displayed).
+-   2°-9° Colonna: Queste sono i **segnali** rilevati dagli 8 sensori, misurati in V
+
+-   10° Colonna: Questa rappresenta la **classe**, ossia l'azione svolta dal soggetto in quell'istante (la verità assoluta che il modello userà per comprendere i gesti
+
+I valori della classe che si andranno ad analizzare saranno 2 (mano a pugno) e il 1 (mano a riposo). La prima idea di analisi era di differenziare tra mano a pugno e mano aperta, questo compito però sarebbe risultato inconcludente a causa del forte sbilanciamento di dati tra le due classi, portando al modello a rispondere "mano a pugno" nella maggior parte dei casi, siccome la probabilità di trovare un caso di "mano aperta" sarebbe stata bassa.
+
+### 1.2 Configurazione del dataset per training e testing
+
+Approfittando la configurazione del dataset, divido gli indivui usati per il *training* e quelli invece usati per il *testing* in modo da evitare in qualsiasi modo il ***Data Leakage.*** In particolare, i primi 24 soggetti saranno usati per allenare il modello mentre i restanti saranno usati per verificare l'allenamento di quest'ultimo.
