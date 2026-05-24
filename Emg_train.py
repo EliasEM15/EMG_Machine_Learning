@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from Emg_dataset import EmgDataloader, preprocess_data
-from Emg_model import Emg
+from Emg_model import Emg, EmgStandard
 
 
 #def train_model():
@@ -35,7 +35,7 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Dispositivo utilizzato per l'allenamento: {device}")
-model=Emg(num_classes=2).to(device)
+model=EmgStandard(num_classes=2).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
@@ -43,8 +43,8 @@ training_start_time= time()
 
 #training loop
 for epoch in range(EPOCHS):
-    epoch_start_time = time()
     model.train()
+    epoch_start_time = time()
     #usiamo r_loss per calcolare l'errore per ogni epoca in modo da capire se l'errore diminuisce
     r_loss=0.0
     #usiamo correct_train e total_train per calcolare l'accuratezza del modello. Se l'accuratezza è troppo alta probabilmente sta andando in overfitting

@@ -5,10 +5,12 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from time import time
 from pathlib import Path
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 # Importiamo i pezzi che abbiamo costruito negli altri tuoi due file
 from Emg_dataset import EmgDataloader, preprocess_data
-from Emg_model import Emg
+from Emg_model import Emg, EmgStandard
 
 
 BATCH_SIZE = 64
@@ -34,7 +36,7 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model=Emg(num_classes=2).to(device)
+model=EmgStandard(num_classes=2).to(device)
 model_filepath = base_path / "emg_lenet1d.pth"
 model.load_state_dict(torch.load(model_filepath))
 model.eval()
@@ -43,7 +45,8 @@ model.eval()
 with torch.no_grad():
     correct = 0
     total = 0
-    
+    all_preds=[]
+    all_labels=[]
     # Ciclo sui dati del Test Set (gli utenti rimasti fuori dall'addestramento)
     for inputs, labels in test_loader:
         inputs, labels = inputs.to(device), labels.to(device)
@@ -58,5 +61,15 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
+        all_preds.extend(predicted.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
+
     # Stampa finale della precisione percentuale, speculare a Pimenta
     print(f"Accuracy of the network on the test dataset: {100 * correct / total:.2f} %")
+
+cm = confusion_matrix(all_labels, all_preds)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(range(2)))
+disp.plot(cmap=plt.cm.Blues, values_format='d')
+plt.title(f'Confusion Matrix: LeNet-5 on MNIST\nAccuracy: {100 * correct / total:.2f}%')
+plt.show()
