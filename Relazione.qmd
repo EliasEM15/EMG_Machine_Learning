@@ -62,24 +62,24 @@ Al fine di agevolare la convergenza dell'algoritmo durante la fase di addestrame
 ```{python, echo=False}
 #| eval: false
 
- def preprocess_data(x_train, x_test):
-    # Calcolo media e deviazione standard del dataset per l'addestramento
-    mean = np.mean(x_train, axis=(0,1), keepdims=True)
-    std = np.std(x_train, axis=(0,1), keepdims=True)
-    
-    # Normalizzazione
-    train_normalized = (x_train - mean) / (std + 1e-8)
-    test_normalized = (x_test - mean) / (std + 1e-8)
+def preprocess_data(x_train, x_test):
+  # Calcolo media e deviazione standard del dataset per l'addestramento
+  mean = np.mean(x_train, axis=(0,1), keepdims=True)
+  std = np.std(x_train, axis=(0,1), keepdims=True)
+  
+  # Normalizzazione
+  train_normalized = (x_train - mean) / (std + 1e-8)
+  test_normalized = (x_test - mean) / (std + 1e-8)
 
-    # Passaggio necessario per costruire i tensori
-    train_tensor = torch.tensor(train_normalized, dtype=torch.float32)
-    test_tensor = torch.tensor(test_normalized, dtype=torch.float32)
+  # Passaggio necessario per costruire i tensori
+  train_tensor = torch.tensor(train_normalized, dtype=torch.float32)
+  test_tensor = torch.tensor(test_normalized, dtype=torch.float32)
 
-    # Trasposizione degli assi 
-    train_tensor = train_tensor.transpose(1, 2)
-    test_tensor = test_tensor.transpose(1, 2)
+  # Trasposizione degli assi 
+  train_tensor = train_tensor.transpose(1, 2)
+  test_tensor = test_tensor.transpose(1, 2)
 
-    return train_tensor, test_tensor
+  return train_tensor, test_tensor
 
 ```
 
@@ -87,9 +87,9 @@ La trasposizione è necessaria per adeguare il tensore alla forma richiesta dal 
 
 ## 3. Composizione modello
 
-### 3.1 1° Modello $\implies$ Lenet1D
+### 3.1 1° Modello $\implies$ Lenet1D-3C
 
-Il primo modello considerato è Lenet1D, che utilizza un'architettura CNN (*Convolutional Neural Network*) monodimensionale, ideale rispetto all'architettura bidimensionale data la struttura del nostro dataset. Questa rete neurale infatti, risulta ottima per l'analisi di pattern all'interno di dati sequenziali, come nel caso di segnali muscolari ricavati dall'EMG.
+Il primo modello considerato è Lenet1D, che utilizza un'architettura CNN (*Convolutional Neural Network*) monodimensionale, ideale rispetto all'architettura bidimensionale data la struttura del nostro dataset. Questa rete neurale infatti, risulta ottima per l'analisi di pattern all'interno di dati sequenziali, come nel caso di segnali EMG.
 
 #### 3.1.1 Struttura
 
@@ -108,22 +108,68 @@ Ogni blocco convoluzionale è composto da 3 funzioni:
 ```{python, echo=False}
 #| eval: false
 
-  self.c1=nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 5, stride= 1, padding= 2)
-          self.r1 = nn.ReLU()
-          self.p1 = nn.MaxPool1d(kernel_size=2, stride=2)
-  
-          #2° Blocco Convoluzionale
-          #input [16, 100] -> dopo conv2 -> [32, 100] -> dopo il Pool -> [32, 50]
-          self.c2=nn.Conv1d(in_channels=16, out_channels=32, kernel_size=5, stride=1, padding=2)
-          self.r2=nn.ReLU()
-          self.p2=nn.MaxPool1d(kernel_size=2, stride=2)
-  
-          #3° Blocco Convoluzionale
-          #input -> [32, 50] -> dopo conv3 -> [128, 1]
-          self.c3=nn.Conv1d(in_channels=32, out_channels=128, kernel_size=50, stride=1, padding=0)
-          self.r3=nn.ReLU()
-          self.fc1= nn.Linear(128, num_classes)
+self.c1=nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 5, stride= 1, padding= 2)
+self.r1 = nn.ReLU()
+self.p1 = nn.MaxPool1d(kernel_size=2, stride=2)
 
+#2° Blocco Convoluzionale
+#input [16, 100] -> dopo conv2 -> [32, 100] -> dopo il Pool -> [32, 50]
+self.c2=nn.Conv1d(in_channels=16, out_channels=32, kernel_size=5, stride=1, padding=2)
+self.r2=nn.ReLU()
+self.p2=nn.MaxPool1d(kernel_size=2, stride=2)
+
+#3° Blocco Convoluzionale
+#input -> [32, 50] -> dopo conv3 -> [128, 1]
+self.c3=nn.Conv1d(in_channels=32, out_channels=128, kernel_size=50, stride=1, padding=0)
+self.r3=nn.ReLU()
+self.fc1= nn.Linear(128, num_classes)
+
+```
+
+### 3.2 2° Modello $\implies$ Lenet1D-2C
+
+Il 2° modello è una variazione del primo, dove si elimina il terzo stadio convoluzionale. Questa variazione risulta molto più rapida da allenare data l'eliminazione di uno stadio, verificando a livello macroscopico i valori. Questa velocità compromette l'accuratezza sia quando la differenza tra due movimenti risulta meno evidente, sia quando il numero di gesti da analizzare è maggiore.
+
+Il modello quindi risulterà più performante quando la classificazione rimane binaria, mentre quando la classificazione avverrà con moltecipli gesti, l'accuratezza del modello andranno a peggiorare.
+
+#### 3.2.1 Struttura
+
+Come già accennato precedentemente, lo stile e il tipo di funzioni sono identici, con unica eccezione il numero di convoluzioni ridotto. La funzione **nn.Linear** avrà quindi un maggior numero di dati da analizzare, data la mancanza di un **nn.MaxPool1d**, il quale dimezzava la dimensione del tensore
+
+### 3.3 3° Modello $\implies$ Multi-Scale 1D
+
+Il 3° modello ha una struttura parallela, dove il primo stadio convoluzionale genera due tensori di misure differenti. Questo metodo permette un'analisi del segnale macroscopica (variazioni temporali) e microscopica (analisi dei segnali istantanei del muscolo).
+
+#### 3.3.1 Struttura
+
+La struttura del modello è composta da 2 blocchi convoluzionali, separati dalla funzione **torch.cat()**.
+
+La prima convoluzione è quella dove si scompone il dataset in due tensori, costruiti da 2 *kernel_size* differenti, i quali si concentrano su dettagli diversi del segnale. In questo modo, il modello è in grado di riconoscere il cambio di configurazione temporale e il valore delle variazioni microscopiche del segnale, portando a riconoscere con maggior facilità i vari gesti considerati
+
+Dopo il primo stadio convoluzionale, i due tensori vengono aggregati tramite la funzione integrata *torch.cat*, la quale prende in ingresso i vari tensori e il termine per il quale concatenarli (in questo caso 1 perché rappresenta i filtri applicati al segnale, punto focale del modello parallelizzato).
+
+Successivamente il segnale passa per iil suo ultimo stadio convolutivo, dal quale il modello non ha ulteriore differenze rispetto agli altri.
+
+```{python, echo=False}
+#| eval: false
+
+self.c1_1= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 3, stride= 1, padding= 1)
+self.r1_1= nn.ReLU()
+self.p1_1= nn.MaxPool1d(kernel_size=2, stride=2)
+
+#2° Ramo
+self.c1_2= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 11, stride= 1, padding= 5)
+self.r1_2= nn.ReLU()
+self.p1_2= nn.MaxPool1d(kernel_size=2, stride=2)
+
+#3° Convoluzione comune
+#si considerano 32 input perché, dopo l'unione delle due convoluzioni, il numero di output si sommano
+self.c2= nn.Conv1d(in_channels=32, out_channels=32, kernel_size= 5, stride= 1, padding= 2)
+self.r2= nn.ReLU()
+self.p2= nn.MaxPool1d(kernel_size=2, stride=2)
+
+#4° fully_connected
+self.fc1= nn.Linear(32*50, num_classes)
 ```
 
 ## 4. Training ed evaluation
@@ -207,28 +253,101 @@ with torch.no_grad():
 
 ## 4.1 Considerazioni sui risultati
 
-### 4.1.1 Classificazione binaria tramite lenet1D
+### 4.1.1 Classificazione binaria 
+
+#### 1° Modello $\implies$ Lenet1D-3C
 
 Analizzando i temi di addestramento e l'accuratezza per ciascuna epoca, si può notare come la durata della prima epoca, nonché la sua accuratezza, sono drasticamente diverse rispetto alle restanti. Questo comportamento irregolare è dovuto principalmente ad operazioni all'**allocazione della memoria(RAM/VRAM)**, dove Pytorch richiede l'assegnazione di blocchi di memoria contigui all'interno della VRAM della GPU nel quale saranno caricati i tensori dei batch e i pesi dell'ottimizzatore. Questa esecuzione non avviene per ogni epoca, ma solo durante la prima richiesta, dopo la quale si andranno ad aggiornare gli stessi blocchi.
 
 ```{python, echo=False}
 #| eval: false
 
-Epoch [1/15],    Loss: 0.2668,   Acc: 90.3335,   elapsed time: 0.3706 seconds
-Epoch [2/15],    Loss: 0.0781,   Acc: 97.7764,   elapsed time: 0.1208 seconds
-Epoch [3/15],    Loss: 0.0462,   Acc: 98.5794,   elapsed time: 0.1123 seconds
-Epoch [4/15],    Loss: 0.0322,   Acc: 99.0117,   elapsed time: 0.1161 seconds
-Epoch [5/15],    Loss: 0.0249,   Acc: 99.2279,   elapsed time: 0.1059 seconds
-Epoch [6/15],    Loss: 0.0162,   Acc: 99.3823,   elapsed time: 0.1107 seconds
-Epoch [7/15],    Loss: 0.0105,   Acc: 99.6603,   elapsed time: 0.1110 seconds
-Epoch [8/15],    Loss: 0.0092,   Acc: 99.7529,   elapsed time: 0.1097 seconds
-Epoch [9/15],    Loss: 0.0065,   Acc: 99.8147,   elapsed time: 0.1135 seconds
-Epoch [10/15],   Loss: 0.0035,   Acc: 99.9691,   elapsed time: 0.1083 seconds
-Epoch [11/15],   Loss: 0.0026,   Acc: 99.9691,   elapsed time: 0.1045 seconds
-Epoch [12/15],   Loss: 0.0027,   Acc: 99.9691,   elapsed time: 0.1104 seconds
-Epoch [13/15],   Loss: 0.0019,   Acc: 99.9691,   elapsed time: 0.1058 seconds
-Epoch [14/15],   Loss: 0.0015,   Acc: 100.0000,  elapsed time: 0.1223 seconds
-Epoch [15/15],   Loss: 0.0011,   Acc: 100.0000,  elapsed time: 0.1056 seconds
+Epoch [1/15],    Loss: 0.2429,   Acc: 89.7468,   elapsed time: 0.3618 seconds
+Epoch [2/15],    Loss: 0.0766,   Acc: 97.3132,   elapsed time: 0.1217 seconds
+Epoch [3/15],    Loss: 0.0482,   Acc: 98.5485,   elapsed time: 0.1213 seconds
+Epoch [4/15],    Loss: 0.0315,   Acc: 99.0117,   elapsed time: 0.1202 seconds
+Epoch [5/15],    Loss: 0.0194,   Acc: 99.3515,   elapsed time: 0.1194 seconds
+Epoch [6/15],    Loss: 0.0167,   Acc: 99.4750,   elapsed time: 0.1191 seconds
+Epoch [7/15],    Loss: 0.0099,   Acc: 99.7838,   elapsed time: 0.1122 seconds
+Epoch [8/15],    Loss: 0.0067,   Acc: 99.9073,   elapsed time: 0.1087 seconds
+Epoch [9/15],    Loss: 0.0047,   Acc: 99.9382,   elapsed time: 0.1042 seconds
+Epoch [10/15],   Loss: 0.0041,   Acc: 99.9691,   elapsed time: 0.1061 seconds
+Epoch [11/15],   Loss: 0.0027,   Acc: 99.9691,   elapsed time: 0.1088 seconds
+Epoch [12/15],   Loss: 0.0022,   Acc: 99.9691,   elapsed time: 0.1092 seconds
+Epoch [13/15],   Loss: 0.0015,   Acc: 99.9691,   elapsed time: 0.1120 seconds
+Epoch [14/15],   Loss: 0.0012,   Acc: 100.0000,  elapsed time: 0.1140 seconds
+Epoch [15/15],   Loss: 0.0010,   Acc: 100.0000,  elapsed time: 0.1096 seconds
+Training completed in 1.9601 seconds
 ```
 
-Dopo aver concluso la valutazione, LeNet-1D ha raggiunto un'accuratezza finale di $97\%$. Si può affermare che questo risultato non è dovuto a *Data Leakage* grazie a tutte le decisioni riguardanti l'isolamento dei dataset. Inoltre, da un risultato così elevato, si conclude che il numero di epoche selezionato è attorno al valore ideale, poiché il modello non è andato in *overfitting*.
+Dopo aver concluso la valutazione, LeNet-1D ha raggiunto un'accuratezza finale di $97.86\%$ in un tempo di $0.1807s$. Si può affermare che questo risultato non è dovuto a *Data Leakage* grazie a tutte le decisioni riguardanti l'isolamento dei dataset. Inoltre, da un risultato così elevato, si conclude che il numero di epoche selezionato è attorno al valore ideale, poiché il modello non è andato in *overfitting*.
+
+#### 2° Modello $\implies$ Lenet1D-2C
+
+```{python}
+#| eval: false
+
+Epoch [1/15],    Loss: 0.3250,   Acc: 83.5392,   elapsed time: 0.3279 seconds
+Epoch [2/15],    Loss: 0.0909,   Acc: 97.1587,   elapsed time: 0.0963 seconds
+Epoch [3/15],    Loss: 0.0672,   Acc: 97.9617,   elapsed time: 0.0911 seconds
+Epoch [4/15],    Loss: 0.0536,   Acc: 98.3941,   elapsed time: 0.0875 seconds
+Epoch [5/15],    Loss: 0.0464,   Acc: 98.7029,   elapsed time: 0.0911 seconds
+Epoch [6/15],    Loss: 0.0387,   Acc: 98.7647,   elapsed time: 0.0935 seconds
+Epoch [7/15],    Loss: 0.0349,   Acc: 98.7956,   elapsed time: 0.0881 seconds
+Epoch [8/15],    Loss: 0.0248,   Acc: 99.1970,   elapsed time: 0.0925 seconds
+Epoch [9/15],    Loss: 0.0272,   Acc: 99.0735,   elapsed time: 0.0890 seconds
+Epoch [10/15],   Loss: 0.0196,   Acc: 99.2588,   elapsed time: 0.0988 seconds
+Epoch [11/15],   Loss: 0.0165,   Acc: 99.4750,   elapsed time: 0.0861 seconds
+Epoch [12/15],   Loss: 0.0173,   Acc: 99.4441,   elapsed time: 0.0911 seconds
+Epoch [13/15],   Loss: 0.0139,   Acc: 99.4750,   elapsed time: 0.0910 seconds
+Epoch [14/15],   Loss: 0.0110,   Acc: 99.6912,   elapsed time: 0.0889 seconds
+Epoch [15/15],   Loss: 0.0091,   Acc: 99.8147,   elapsed time: 0.0887 seconds
+Training completed in 1.6152 seconds
+```
+
+Accuratezza finale è del $98.74 \%$ eseguita in $0.1598s$.
+
+#### 3° Modello $\implies$ Multi-Scale1D
+
+```{python}
+#| eval: false
+
+Epoch [1/15],    Loss: 0.3011,   Acc: 85.6702,   elapsed time: 0.3614 seconds
+Epoch [2/15],    Loss: 0.0754,   Acc: 97.8073,   elapsed time: 0.1112 seconds
+Epoch [3/15],    Loss: 0.0429,   Acc: 98.7338,   elapsed time: 0.1068 seconds
+Epoch [4/15],    Loss: 0.0318,   Acc: 99.1662,   elapsed time: 0.1032 seconds
+Epoch [5/15],    Loss: 0.0238,   Acc: 99.2279,   elapsed time: 0.1055 seconds
+Epoch [6/15],    Loss: 0.0161,   Acc: 99.4132,   elapsed time: 0.1053 seconds
+Epoch [7/15],    Loss: 0.0140,   Acc: 99.5985,   elapsed time: 0.1053 seconds
+Epoch [8/15],    Loss: 0.0093,   Acc: 99.7221,   elapsed time: 0.1030 seconds
+Epoch [9/15],    Loss: 0.0080,   Acc: 99.7838,   elapsed time: 0.1033 seconds
+Epoch [10/15],   Loss: 0.0057,   Acc: 99.9073,   elapsed time: 0.1113 seconds
+Epoch [11/15],   Loss: 0.0046,   Acc: 99.9691,   elapsed time: 0.1045 seconds
+Epoch [12/15],   Loss: 0.0037,   Acc: 99.9691,   elapsed time: 0.1026 seconds
+Epoch [13/15],   Loss: 0.0032,   Acc: 99.9691,   elapsed time: 0.1020 seconds
+Epoch [14/15],   Loss: 0.0027,   Acc: 99.9691,   elapsed time: 0.1023 seconds
+Epoch [15/15],   Loss: 0.0023,   Acc: 99.9691,   elapsed time: 0.1107 seconds
+Training completed in 1.8511 seconds
+```
+
+Accuratezza finale è del $98.36 \%$ eseguita in $0.1929s$.
+
+#### Considerazioni e comparazioni
+
+### 4.1.2 Classificazione a 7 gesti
+
+Per considerare bene i rsultati ottenuti è necessario inanzitutto definire quali sono i gesti analizzati: 0-mano a riposo, 1-mano a pugno, 2-flessione del polso, 3-estensione del polso, 4-deviazioni radiali, 5-deviazioni ulnirali e 7-mano aperta. L'ultima configurazione non è stata svolta da tutti i partecipanti, perciò l'accuratezza calerà per quella determinata configurazione.
+
+Siccome il numero di configurazioni da analizzare sono maggiori, si utilizza la **matrice di confusione** per migliorare la lettura e la comprensione dell'accuratezza della predizione in base alla configurazione stessa.
+
+#### 1° Modello $\implies$ Lenet1D-3C
+
+![](Images/Confusion_matrix_Lenet1D-3C.png)
+
+#### 2° Modello $\implies$ Lenet1D-2C
+
+![](Images/Confusion_matrix_Lenet1D-2C.png)
+
+#### 3° Modello $\implies$ Multi-Scale1D
+
+![](Images/Confusion_matrix_Multi-Scale1D.png)

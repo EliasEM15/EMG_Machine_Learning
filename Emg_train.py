@@ -5,18 +5,19 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from Emg_dataset import EmgDataloader, preprocess_data
-from Emg_model import Emg, EmgStandard
+from Emg_model import Emg, EmgStandard, EmgMultiScale
 
 
 #def train_model():
 BATCH_SIZE = 64      
 EPOCHS = 15          
 LEARNING_RATE = 0.001
+NUM_CLASSES= 7
 
 #caricamento dei dati
 base_path= Path(__file__).resolve().parent
 data_folder_path = base_path / "dataset" 
-estrattore= EmgDataloader(data_folder_path="./dataset")
+estrattore= EmgDataloader(data_folder_path=data_folder_path)
 (x_train, y_train), (x_test, y_test) = estrattore.load_data()
 
 #preparo i tensori usati per training e test
@@ -34,8 +35,8 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Dispositivo utilizzato per l'allenamento: {device}")
-model=EmgStandard(num_classes=2).to(device)
+model=EmgStandard(num_classes=NUM_CLASSES).to(device)
+print(f"Dispositivo utilizzato per l'allenamento: {model.__class__.__name__}")
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 

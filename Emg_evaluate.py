@@ -10,17 +10,18 @@ import matplotlib.pyplot as plt
 
 # Importiamo i pezzi che abbiamo costruito negli altri tuoi due file
 from Emg_dataset import EmgDataloader, preprocess_data
-from Emg_model import Emg, EmgStandard
+from Emg_model import Emg, EmgStandard, EmgMultiScale
 
 
 BATCH_SIZE = 64
 EPOCHS = 15          
 LEARNING_RATE = 0.001
+NUM_CLASSES=7
 
 #caricamento dei dati
 base_path= Path(__file__).resolve().parent
 data_folder_path = base_path / "dataset" 
-estrattore= EmgDataloader(data_folder_path="./dataset")
+estrattore= EmgDataloader(data_folder_path=data_folder_path)
 (x_train, y_train), (x_test, y_test) = estrattore.load_data()
 
 #preparo i tensori usati per training e test
@@ -36,10 +37,12 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model=EmgStandard(num_classes=2).to(device)
+model=EmgStandard(num_classes=NUM_CLASSES).to(device)
+print(f"Dispositivo utilizzato per la valutazione: {model.__class__.__name__}")
 model_filepath = base_path / "emg_lenet1d.pth"
 model.load_state_dict(torch.load(model_filepath))
 model.eval()
+training_start_time= time()
 
 # 3. Disattiviamo il calcolo dei gradienti per risparmiare memoria e velocizzare i calcoli
 with torch.no_grad():
@@ -66,10 +69,12 @@ with torch.no_grad():
 
     # Stampa finale della precisione percentuale, speculare a Pimenta
     print(f"Accuracy of the network on the test dataset: {100 * correct / total:.2f} %")
-
+training_end_time=time()
+training_time= training_end_time - training_start_time
+print(f"Testing completed in {training_time:.4f} seconds")
 cm = confusion_matrix(all_labels, all_preds)
 
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(range(2)))
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(range(NUM_CLASSES)))
 disp.plot(cmap=plt.cm.Blues, values_format='d')
-plt.title(f'Confusion Matrix: LeNet-5 on MNIST\nAccuracy: {100 * correct / total:.2f}%')
+plt.title(f'Confusion Matrix: Lenet1D-2C\nAccuracy: {100 * correct / total:.2f}%    ' f'evaluation time: {training_time:.2f}')
 plt.show()

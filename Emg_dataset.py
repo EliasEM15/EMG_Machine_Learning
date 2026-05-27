@@ -41,15 +41,15 @@ class EmgDataloader(object):
                 ds = ds.rename(columns={'class':'label'})
                 
                 # Definizioni delle classi selezionate per lo studio
-                target_classes = [1, 2]
+                target_classes = [1,2,3,4,5,6,7]
 
                 ds_filtered= ds[ds['label'].isin(target_classes)]
-                ds_filtered['label']= ds_filtered['label'].map({1:0,2:1})
+                ds_filtered['label']= ds_filtered['label'] - 1
                 
                 #separo i valori in due variabili: i risultato dei sensori(matrice di valori); i valori di label(verità assoluta)
 
                 sensor_ds=ds_filtered.iloc[:, 1:9].values
-                label_ds=ds_filtered['label'].values
+                label_ds=ds_filtered['label'].values.astype(int)
 
 
                 for i in range(0, len(sensor_ds) - self.window_size, self.step_size):
