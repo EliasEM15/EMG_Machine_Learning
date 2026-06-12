@@ -37,15 +37,17 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model=EmgStandard(num_classes=NUM_CLASSES).to(device)
+model=Emg(num_classes=NUM_CLASSES).to(device)
 print(f"Dispositivo utilizzato per la valutazione: {model.__class__.__name__}")
 model_filepath = base_path / "emg_lenet1d.pth"
+loss_function = nn.CrossEntropyLoss()
 model.load_state_dict(torch.load(model_filepath))
 model.eval()
 training_start_time= time()
 
 # 3. Disattiviamo il calcolo dei gradienti per risparmiare memoria e velocizzare i calcoli
 with torch.no_grad():
+    test_loss = 0.0
     correct = 0
     total = 0
     all_preds=[]
@@ -56,11 +58,13 @@ with torch.no_grad():
         
         # Passaggio in avanti
         outputs = model(inputs)
+        t_loss = loss_function(outputs, labels)
         
         # Troviamo il gesto con il punteggio più alto (0 o 1)
         _, predicted = torch.max(outputs.data, 1)
         
         # Accumuliamo il totale delle finestre e quelle indovinate
+        test_loss += t_loss.item()
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
@@ -71,10 +75,11 @@ with torch.no_grad():
     print(f"Accuracy of the network on the test dataset: {100 * correct / total:.2f} %")
 training_end_time=time()
 training_time= training_end_time - training_start_time
+avg_test_loss = test_loss / len(test_loader)
 print(f"Testing completed in {training_time:.4f} seconds")
 cm = confusion_matrix(all_labels, all_preds)
 
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(range(NUM_CLASSES)))
 disp.plot(cmap=plt.cm.Blues, values_format='d')
-plt.title(f'Confusion Matrix: Lenet1D-2C\nAccuracy: {100 * correct / total:.2f}%    ' f'evaluation time: {training_time:.2f}')
+plt.title(f'Confusion Matrix: Lenet1D-2C\nAccuracy: {100 * correct / total:.2f}%    ' f'evaluation time: {training_time:.2f}    'f'loss: {avg_test_loss:.2f}%')
 plt.show()

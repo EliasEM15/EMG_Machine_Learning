@@ -127,4 +127,4 @@ if __name__ == "__main__":
     model1= Emg()
     model2= EmgStandard()
     model3= EmgMultiScale()
-    print (model1, model2)
+    print (model1, model2, model3)

@@ -108,19 +108,22 @@ Ogni blocco convoluzionale è composto da 3 funzioni:
 ```{python, echo=False}
 #| eval: false
 
-self.c1=nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 5, stride= 1, padding= 2)
+self.c1=nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 5, stride= 1, 
+        padding= 2)
 self.r1 = nn.ReLU()
 self.p1 = nn.MaxPool1d(kernel_size=2, stride=2)
 
 #2° Blocco Convoluzionale
 #input [16, 100] -> dopo conv2 -> [32, 100] -> dopo il Pool -> [32, 50]
-self.c2=nn.Conv1d(in_channels=16, out_channels=32, kernel_size=5, stride=1, padding=2)
+self.c2=nn.Conv1d(in_channels=16, out_channels=32, kernel_size=5, stride=1, 
+        padding=2)
 self.r2=nn.ReLU()
 self.p2=nn.MaxPool1d(kernel_size=2, stride=2)
 
 #3° Blocco Convoluzionale
 #input -> [32, 50] -> dopo conv3 -> [128, 1]
-self.c3=nn.Conv1d(in_channels=32, out_channels=128, kernel_size=50, stride=1, padding=0)
+self.c3=nn.Conv1d(in_channels=32, out_channels=128, kernel_size=50, stride=1, 
+        padding=0)
 self.r3=nn.ReLU()
 self.fc1= nn.Linear(128, num_classes)
 
@@ -153,18 +156,22 @@ Successivamente il segnale passa per iil suo ultimo stadio convolutivo, dal qual
 ```{python, echo=False}
 #| eval: false
 
-self.c1_1= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 3, stride= 1, padding= 1)
+self.c1_1= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 3, stride= 1,
+          padding= 1)
 self.r1_1= nn.ReLU()
 self.p1_1= nn.MaxPool1d(kernel_size=2, stride=2)
 
 #2° Ramo
-self.c1_2= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 11, stride= 1, padding= 5)
+self.c1_2= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 11, stride= 1, 
+          padding= 5)
 self.r1_2= nn.ReLU()
 self.p1_2= nn.MaxPool1d(kernel_size=2, stride=2)
 
 #3° Convoluzione comune
-#si considerano 32 input perché, dopo l'unione delle due convoluzioni, il numero di output si sommano
-self.c2= nn.Conv1d(in_channels=32, out_channels=32, kernel_size= 5, stride= 1, padding= 2)
+#si considerano 32 input perché, dopo l'unione delle due convoluzioni, 
+#il numero di output si sommano
+self.c2= nn.Conv1d(in_channels=32, out_channels=32, kernel_size= 5, stride= 1, 
+        padding= 2)
 self.r2= nn.ReLU()
 self.p2= nn.MaxPool1d(kernel_size=2, stride=2)
 
@@ -176,7 +183,7 @@ self.fc1= nn.Linear(32*50, num_classes)
 
 Come già definito anteriormente, per garantire che l'addestramento dell'algoritmo non influenzi la valutazione di quest'ultimo, è stato deciso di separare i dati rispetto agli individui, così che la valutazione avvenisse con segnali mai osservati e evitare l'*overfitting* per contaminazione dei dati. Seguendo questa logica sono stati separati anche i due programmi di *training* e *testing* a scopo organizzativo, migliorando l'interpretabilità di quest'ultimi.
 
-#### 4.0.1 Composizione training
+### 4.0.1 Composizione training
 
 Questo programma svolge il *training loop* su una serie epoche. Il suo compito è alimentare l'algoritmo convoluzionale tramite i mini-batch, per poi calcolare la differenza tra le predizioni e la *ground truth*. Al fine di calcolare tale differenza, è stata scelta come *loss_function* la **Cross_Entropy_Loss**, poiché è la più adatta per i problemi di classifcazione, aumentando il valore di *loss* in base alla gravità dell'errore di predizione. Successivamente, il valore di errore si propaga all'indietro, aggiornando il valore dei pesi tramite l'ottimizzatore **Adam**, il più popolare tra gli ottimizzatori dato che regola il *learning rate* in base ai gradienti di ciascun peso, migliorando la convergenza della predizione.
 
@@ -190,9 +197,11 @@ Al termine di ogni epoca, il codice stampa la loss media e l'accuratezza tempora
 for epoch in range(EPOCHS):
     epoch_start_time = time()
     model.train()
-    #usiamo r_loss per calcolare l'errore per ogni epoca in modo da capire se l'errore diminuisce
+    #usiamo r_loss per calcolare l'errore per ogni epoca in modo da capire se
+    #l'errore diminuisce
     r_loss=0.0
-    #usiamo correct_train e total_train per calcolare l'accuratezza del modello. Se l'accuratezza è troppo alta probabilmente sta andando in overfitting
+    #usiamo correct_train e total_train per calcolare l'accuratezza 
+    #del modello: Se l'accuratezza è troppo alta probabilmente sta andando in overfitting
     correct_train=0.0
     total_train=0.0
 
@@ -208,7 +217,8 @@ for epoch in range(EPOCHS):
 
         r_loss += loss.item()
 
-        #a parte il calcolo della loss si aggiunge il calcolo dell'accuratezza per ogni epoca, in modo da verificare eventuali overfittimg
+        #a parte il calcolo della loss si aggiunge il calcolo dell'accuratezza 
+        #per ogni epoca, in modo da verificare eventuali overfittimg
         _, predicted=torch.max(outputs.data, 1)
         total_train+= labels.size(0)
         correct_train+= (predicted==labels).sum()
@@ -221,7 +231,7 @@ Durante il *training* del modello, è importante definire il valore delle variab
 
 Modificando il *learning_rate*, si varia la velocità di variazione dei pesi dell'ottimizzatore. Se il valore è troppo piccolo, il modello impiegherà molto tempo per ridurre l'errore minimo, mentre se il valore è troppo alto, la *loss* diverge, non raggiungendo mai un valore di errore soddisfacente.
 
-#### 4.0.2 Composizione *testing*
+### 4.0.2 Composizione *testing*
 
 Questo programma carica i pesi ottimali precedentemente ottenuti dal *training* e successivamente salvati all'interno del file *emg_lenet1d.pth* per poi procedere con la valutazione del modello tramite la funzione `model.eval()`, accompagnata da `torch.no_grad()` affinché l'algoritmo non calcoli il gradiente dei tensori, non unitlizzati durante la valutazine. Una volta completata la valutazione, il programma procede a stampare a schermo il risultato di accuratezza finale, da cui poi si concluderà se il modello è affidabile.
 
@@ -235,7 +245,7 @@ with torch.no_grad():
     correct = 0
     total = 0
     
-    # Ciclo sui dati del Test Set (gli utenti rimasti fuori dall'addestramento)
+    #Ciclo sui dati del Test Set (gli utenti rimasti fuori dall'addestramento)
     for inputs, labels in test_loader:
         inputs, labels = inputs.to(device), labels.to(device)
         
@@ -251,9 +261,9 @@ with torch.no_grad():
 
 ```
 
-## 4.1 Considerazioni sui risultati
+## 5. Considerazioni sui risultati
 
-### 4.1.1 Classificazione binaria 
+### 5.1 Classificazione binaria
 
 #### 1° Modello $\implies$ Lenet1D-3C
 
@@ -334,20 +344,40 @@ Accuratezza finale è del $98.36 \%$ eseguita in $0.1929s$.
 
 #### Considerazioni e comparazioni
 
-### 4.1.2 Classificazione a 7 gesti
+Confrontando i risultati ottenuti dai tre modelli considerati, si può notare che per una classficazione binaria il risultato migliore sia ottenuto dal modello Lenet1D a due convoluzioni, garantendo l'accuratezza più alta con il tempo di training minore. Questo risultato era prevedibile e concorde alle caratteristiche del modello, dato che i tipi di gesti considerazioni sono molto differenti tra loro e non c'è necessità di analizzare a fondo i segnali per verificare anche i picchi improvvisi.
 
-Per considerare bene i rsultati ottenuti è necessario inanzitutto definire quali sono i gesti analizzati: 0-mano a riposo, 1-mano a pugno, 2-flessione del polso, 3-estensione del polso, 4-deviazioni radiali, 5-deviazioni ulnirali e 7-mano aperta. L'ultima configurazione non è stata svolta da tutti i partecipanti, perciò l'accuratezza calerà per quella determinata configurazione.
+### 5.2 Classificazione a 7 gesti
+
+Per considerare bene i rsultati ottenuti è necessario inanzitutto definire quali sono i gesti analizzati: 0-mano a riposo, 1-mano a pugno, 2-flessione del polso, 3-estensione del polso, 4-deviazioni radiali, 5-deviazioni ulnirali e 6-mano aperta. L'ultima configurazione non è stata svolta da tutti i partecipanti, perciò l'accuratezza calerà per quella determinata configurazione.
 
 Siccome il numero di configurazioni da analizzare sono maggiori, si utilizza la **matrice di confusione** per migliorare la lettura e la comprensione dell'accuratezza della predizione in base alla configurazione stessa.
 
 #### 1° Modello $\implies$ Lenet1D-3C
 
-![](Images/Confusion_matrix_Lenet1D-3C.png)
+![](Images/Confusion_matrix_Lenet1D-3C.png){width="90%"}
+
+Tempo di training è di $5.2802s$
 
 #### 2° Modello $\implies$ Lenet1D-2C
 
-![](Images/Confusion_matrix_Lenet1D-2C.png)
+![](Images/Confusion_matrix_Lenet1D-2C.png){width="90%"}
+
+Tempo di training è di $4.5609s$
+
+\newpage
 
 #### 3° Modello $\implies$ Multi-Scale1D
 
-![](Images/Confusion_matrix_Multi-Scale1D.png)
+![](Images/Confusion_matrix_Multi-Scale1D.png){width="90%"}
+
+Tempo di training è di $5.3605s$.
+
+#### Considerazioni e comparazioni
+
+L'aumento della complessità dell'analisi da 2 a 7 gesti ha provocato tempi di training leggermente più alti, facendo notare il maggior carico richiesto per poter definire con più accuratezza le varie configurazioni. Dai risultati raccolti si possono fare alcune considerazioni sulle principali caratteristiche, individuabili sui risultati di tutti e tre i modelli:
+
+-   per la configurazione 6 (mano aperta), nessuno dei tre modelli è stato in grado di predirla. Questa mancanza è un fenomeno particolare che avviene per colpa di uno **sbilanciamento del dataset**. Come già definito da chi l'ha pubblicato, esso ha pochi dati riguardanti tale gesto, provocando che il modello non possa estrarre sufficienti *feature* e quindi classificare in maniera erronea tale movimento.
+
+-   Le configurazioni 2 e 5(flessione del polso e deviazione ulnirale), nonché 3 e 4 (estensione del polso e deviazione radiale), sono spesso confuse tra loro nel modello. Questo fenonemo è causato da **sinergia muscolare dei movimenti** e **bassa risoluzione degli strumenti di misura**. I muscoli che vengono attivati durante lo svolgimento di tali coppie sono molto simili tra loro, provocando che il modello spesso si confonda. Per la precisione, la coppia 2-5 condivide l'attivazione del muscolo flessore ulnare del carpo, mentre la coppia 3-4 condivide l'attivazione degli estensori radiali del carpo. Siccome le fibre muscolari sono sovrapposte tra loro, i sensori notano segnali sovrapposti, che generano errate letture nel modello.
+
+Per questa configurazione, il modello Lenet1D-2C, seppur mantendendo un tempo di allenamento rapido, è quello che presenta una minor accuratezza finale, anche se di poco. Il miglior modello per accuratezza è il modello Multi-Scale1D, che ottiene un risultato di $78,40\%$.

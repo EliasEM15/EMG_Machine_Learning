@@ -10,7 +10,7 @@ from Emg_model import Emg, EmgStandard, EmgMultiScale
 
 #def train_model():
 BATCH_SIZE = 64      
-EPOCHS = 15          
+EPOCHS = 125        
 LEARNING_RATE = 0.001
 NUM_CLASSES= 7
 
@@ -35,7 +35,7 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model=EmgStandard(num_classes=NUM_CLASSES).to(device)
+model=Emg(num_classes=NUM_CLASSES).to(device)
 print(f"Dispositivo utilizzato per l'allenamento: {model.__class__.__name__}")
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)

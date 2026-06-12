@@ -1,7 +1,7 @@
 
 
 
-
+from pathlib import Path
 import os
 import numpy as np
 import pandas as pd
@@ -97,10 +97,11 @@ def preprocess_data(x_train, x_test):
 
 if __name__ == "__main__":
    
-    data_path = "./dataset" 
+    base_path= Path(__file__).resolve().parent
+    data_folder_path = base_path / "dataset" 
     
 
-    estrattore = EmgDataloader(data_path)
+    estrattore = EmgDataloader(data_folder_path)
     
     (x_train, y_train), (x_test, y_test) = estrattore.load_data()
     train_tensor, test_tensor = preprocess_data(x_train, x_test)
