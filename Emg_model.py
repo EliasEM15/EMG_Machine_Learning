@@ -84,20 +84,24 @@ class EmgMultiScale(nn.Module):
 
         #1° Ramo
         self.c1_1= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 3, stride= 1, padding= 1)
+        self.bn1_1 = nn.BatchNorm1d(16)
         self.r1_1= nn.ReLU()
         self.p1_1= nn.MaxPool1d(kernel_size=2, stride=2)
 
         #2° Ramo
         self.c1_2= nn.Conv1d(in_channels=8, out_channels=16, kernel_size= 11, stride= 1, padding= 5)
+        self.bn1_2 = nn.BatchNorm1d(16)
         self.r1_2= nn.ReLU()
         self.p1_2= nn.MaxPool1d(kernel_size=2, stride=2)
 
         #3° Convoluzione comune
         #si considerano 32 input perché, dopo l'unione delle due convoluzioni, il numero di output si sommano
         self.c2= nn.Conv1d(in_channels=32, out_channels=32, kernel_size= 5, stride= 1, padding= 2)
+        self.bn2 = nn.BatchNorm1d(32)
         self.r2= nn.ReLU()
         self.p2= nn.MaxPool1d(kernel_size=2, stride=2)
 
+        self.dropout = nn.Dropout(p=0.2)
         #4° fully_connected
         self.fc1= nn.Linear(32*50, num_classes)
 
@@ -105,21 +109,25 @@ class EmgMultiScale(nn.Module):
     def forward(self, x):
 
         branch_1= self.c1_1(x)
+        branch_1= self.bn1_1(branch_1)
         branch_1= self.r1_1(branch_1)
         branch_1= self.p1_1(branch_1)
 
         branch_2= self.c1_2(x)
+        branch_2= self.bn1_2(branch_2)
         branch_2= self.r1_2(branch_2)
         branch_2= self.p1_2(branch_2)
 
-        x=torch.cat((branch_1, branch_2), dim=1)
+        x= torch.cat((branch_1, branch_2), dim=1)
 
         x= self.c2(x)
+        x= self.bn2(x)
         x= self.r2(x)
         x= self.p2(x)
 
-        x=x.view(x.size(0), -1)
-        x=self.fc1(x)
+        x= x.view(x.size(0), -1)
+        x= self.dropout(x)
+        x= self.fc1(x)
         return x
 
     

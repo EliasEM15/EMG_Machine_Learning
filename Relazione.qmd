@@ -1,9 +1,15 @@
 ---
 title: "Riconoscimento di Gesture tramite segnali EMG"
 author: "Elias Ezequiel Moreno matricola n°244211"
-format: pdf
-editor: visual
 ---
+
+```{python}
+
+```
+
+------------------------------------------------------------------------
+
+format: pdf editor: visual ---
 
 ## 1. Definizione del Problema e Obiettivo
 
@@ -13,25 +19,25 @@ Il compito che deve svolgere il modello è l'analisi di segnali elettromiografic
 
 ## 2. Composizione del Dataset e suddivisione dei dati
 
-Il dataset proveniente dalla **UCI Machine Learning Repository** è composto da ben 36 cartelle, ciascuna rappresentante un individuo sottoposto alle misurazioni tramite sEMG. L'analisi è stata eseguita tramite un dispositivo con 8 sensori equidistanti che andranno a raccogliere segnali muscolari. Ad ogni partecipante e richiesto di svolgere due serie di 6/7 gesti svolti con la mano e mantenuti per 3 secondi, seguiti da una fase di riposo di 3 secondi. I risultati dei vari sensori vengono poi salvati in un file di testo composto da 10 colonne:
+Il dataset proveniente dalla **UCI Machine Learning Repository** è composto da 36 cartelle, ciascuna rappresentante un individuo sottoposto alle misurazioni tramite EMG. L'analisi è stata eseguita tramite un dispositivo con 8 sensori equidistanti che raccogliono i segnali muscolari. Ad ogni partecipante è stato richiesto di svolgere due serie di 6/7 gesti svolti con la mano, ciascuno mantenuto per 3 secondi, seguiti da una fase di riposo di 3 secondi. I risultati dei vari sensori vengono poi salvati in un file di testo composto da 10 colonne:
 
 -   **1° Colonna**: è la **marcatura temporale**, ossia l'istante di tempo in cui viene svolta l'azione;
 
--   **2°- 9° Colonna**: Queste sono i valori grezzi dei **segnali** rilevati dagli 8 sensori;
+-   **2°- 9° Colonna**: sono i valori grezzi dei **segnali** rilevati dagli 8 sensori;
 
--   **10° Colonna**: Questa rappresenta la **classe**, ossia l'azione svolta dal soggetto in quell'istante (*Ground Truth* che il modello userà per comprendere i gesti)
+-   **10° Colonna**: rappresenta la **classe**, ossia l'azione svolta dal soggetto in quell'istante (*Ground Truth* che il modello userà per comprendere i gesti)
 
-I valori della classe che si andranno ad analizzare saranno 2 (mano a pugno) e il 1 (mano a riposo), rimappate per il corretto funzionamento del modello rispettivamente come 0 ed 1. Un valutazione iniziale era di differenziare tra mano a pugno e mano aperta, questo compito però sarebbe risultato inconcludente a causa del forte sbilanciamento di dati tra le due classi, portando al modello a rispondere "mano a pugno" nella maggior parte dei casi, poiché la probabilità di trovare un caso di "mano aperta".
+Per la classificazione binaria saranno analizzati i segnali temporali corrispondenti alla **mano a riposo** e **mano a pugno**, rimappati per il corretto funzionamento del modello rispettivamente come 0 ed 1. Inizialmente è stato valutato l'utilizzo dei segnali corrispondenti alla **mano aperti**, comportando però risultati inconcludenti dovuti alla scarsa presenza di dati riguardanti tale configurazione. Questo fenonemo provoca che il modello risponda continuamente "mano a pugno" avendo capito che la quantità di segnali riconducibili alla configurazione di "mano aperta" sono notevolemente inferiori alle configurazioni di "mano a pugno".
 
-Approfittando della configurazione del dataset, si è optato per dividere gli individui usati per il *training* e quelli invece usati per il *testing* in modo da evitare in qualsiasi modo il ***Data Leakage.*** In particolare, i primi 24 soggetti saranno usati per allenare il modello mentre i restanti saranno usati per verificare l'allenamento di quest'ultimo. Questa configurazione permette di verificare il modello con pattern e segnali muscolari totalmente nuovi e mai visti durante la fase di training, verificandone perfettamente l'accuratezza.
+Approfittando della configurazione del dataset, si è optato per dividere gli individui usati per il *training* e quelli invece usati per il *testing* in modo da evitare in qualsiasi modo il ***Data Leakage.*** In particolare, i primi 24 soggetti saranno usati per allenare il modell, mentre i restanti 12 saranno usati per verificare l'allenamento. Questa configurazione permette di verificare il modello con pattern e segnali muscolari totalmente nuovi e mai visti durante la fase di training, costatandone l'accuratezza.
 
 ### 2.1 Segmentazione dei segnali $\implies$ Windowing
 
-Per poter utilizzare i valori grezzi dei sensori per allenare il modello di *Deep Learning* è necessario inanzitutto caricare i risultati attraverso una tecnica di segmentazione del segnale. Essa consiste nell'uso di una "finestra temporale" che scorre nel dataframe con passo di lunghezza inferiore alla grandezza di tale finestra, in modo da generare sovrapposizione tra due segmentazioni consecutive. In questo modo, si può garantire che si rilevi l'evoluzione nel tempo del segnale, mantenendo un elevato numero di campioni per l'addestramento.
+Per poter utilizzare i valori grezzi dei sensori al fine di allenare il modello di *Deep Learning,* è necessario innanzitutto caricare i risultati attraverso una tecnica di segmentazione del segnale. Questa consiste nell'uso di una "finestra temporale" che scorre nel dataframe, generando segmentazioni consecutive e parzialmente sovrapposte, in modo da garantire il rilevamento dell'evoluzione nel tempo del segnale, mantenendo comunque elevato numero di campioni per l'addestramento.
 
-Siccome alcune finestre temporali possono rilevare dati durante un periodo di transizione, dove il gesto passa da una configurazione all'altra, si definisce come gesto principale di ogni finestra, quello con il maggior numero di elementi all'interno di essa.
+Siccome alcune finestre temporali possono rilevare dati durante un periodo di transizione dove il gesto passa da una configurazione all'altra, si definisce come gesto principale di ogni finestra quello con il maggior numero di elementi all'interno di essa.
 
-#### Frammento di codice dove si applica ciò che è stato definito anteriormente
+#### Segmento di codice dove si applica ciò che è stato definito anteriormente
 
 ```{python, echo=False}
 #| eval: false
@@ -55,7 +61,7 @@ for i in range(0, len(sensor_ds) - self.window_size, self.step_size):
 
 ### 2.2 Normalizzazione dei tensori
 
-Al fine di agevolare la convergenza dell'algoritmo durante la fase di addestramento del modello, è necessaria una normalizzazione dei valori grezzi ricavati dai sensori. I segnali da valutare infatti, variano a seconda della forza impressa da ciascun individuo, per questo motivo non può essere un limite massimo e minimo come nel caso dei colori dei pixel (che vanno da 0 a 255). Date queste premesse si è optato per la normalizzazione di tali valori, calcolando media e deviazione standard del dataset, esclusa la parte dedicata alla valutazione. Questa decisione nasce per evitare che il modello abbia informazioni riguardanti il dataset di *testing*. Media e deviazione standard $\mu$ vengono successivamente applicati ad entrambi i dataset, aggiungendo a $\mu$ una costante $\epsilon= 10^{-8}$ per evitare casi in cui la deviazione standard sia pari a 0.
+Al fine di agevolare la convergenza dell'algoritmo durante la fase di addestramento del modello, è necessaria una normalizzazione dei valori grezzi ricavati dai sensori. I segnali da valutare infatti, variano a seconda di vari fattori soggettivi(forza dell'individuo, posizione leggermente diversa, ecc...) , per questo motivo non si è in grado di riconoscere un valore massimo e minimo nell'intensità del segnale( al contrario di quanto accade nel caso delle immagini, dove il colore dei pixel va da 0 a 255). Date queste premesse si è optato per la normalizzazione di tali valori, calcolando media e deviazione standard del dataset, esclusa la parte dedicata alla valutazione. Questa decisione nasce per evitare che il modello abbia informazioni riguardanti il dataset di *testing*. Media e deviazione standard $\mu$ vengono successivamente applicati ad entrambi i dataset, aggiungendo a $\mu$ una costante $\epsilon= 10^{-8}$ per evitare casi in cui la deviazione standard sia pari a 0.
 
 ### Codice:
 
@@ -93,13 +99,13 @@ Il primo modello considerato è Lenet1D, che utilizza un'architettura CNN (*Conv
 
 #### 3.1.1 Struttura
 
-Le rete neurale è strutturata su tre blocchi convoluzionali, seguiti da una classificazione lineare (*Fully connected*). Questa combinazione è scelta per permettere di estrarre i picchi dei segnali muscolari per ciascuno dei 8 valori di ingresso, mantenendo così le correlazioni temporali.
+La rete neurale è strutturata su tre blocchi convoluzionali, seguiti da una classificazione lineare (*Fully connected*). Questa combinazione è scelta per permettere di estrarre i picchi dei segnali muscolari per ciascuno degli 8 valori di ingresso, mantenendo così le correlazioni temporali.
 
 Ogni blocco convoluzionale è composto da 3 funzioni:
 
--   **nn.Conv1d** applica i filtri convoluzionali ad una sequenza di dati definita come *kernel*, la quale lunghezza risulta pari a quella definita da *kernel_size*. *Stride* definisce il passo dopo il quale si studierà il seguente kernel. Il *padding* serve ad aggiungere una serie di zeri ai bordi del dataset per preservare le dimensioni del segnale originale.
+-   **nn.Conv1d** applica i filtri convoluzionali ad una sequenza di dati definita come *kernel*, la cui lunghezza risulta pari a quella definita da *kernel_size*. *Stride* definisce il passo dopo il quale si studierà il seguente kernel. Il *padding* serve ad aggiungere una serie di zeri ai bordi del dataset per preservare le dimensioni del segnale originale.
 
--   **nn.ReLU** è una funzione di attivazione la cui formula è $f(x)=max(0, x)$. Lo scopo è introdurre non linearità, fondamentale nelle reti neurali per poter risolvere problemi complessi. Inoltre, grazie a essa, si elimina la possibilità di annullamento del gradiente( *Vanishing Gradient*). Questo fenomeno si presenta quando il valore dei gradienti raggiungono lo 0 durante la *backpropagation*, non permettendo quindi al modello di aggiornare i propi pesi, bloccando il *training.*
+-   **nn.ReLU** è una funzione di attivazione la cui formula è $f(x)=max(0, x)$. Lo scopo è introdurre non linearità, fondamentale nelle reti neurali per poter risolvere problemi complessi. Inoltre, grazie a essa, si elimina la possibilità di annullamento del gradiente( *Vanishing Gradient*). Questo fenomeno si presenta quando il valore dei gradienti raggiungono lo 0 durante la *backpropagation*, non permettendo quindi al modello di aggiornare i propri pesi, bloccando il *training.*
 
 -   **nn.MaxPool1d** svolge un sottocampionamento per ridurre la lunghezza del tensore considerato, riducendo i calcoli per i layer successivi e la sensibilità della rete neurale alle piccole variazioni temporali del segnale
 
@@ -131,13 +137,13 @@ self.fc1= nn.Linear(128, num_classes)
 
 ### 3.2 2° Modello $\implies$ Lenet1D-2C
 
-Il 2° modello è una variazione del primo, dove si elimina il terzo stadio convoluzionale. Questa variazione risulta molto più rapida da allenare data l'eliminazione di uno stadio, verificando a livello macroscopico i valori. Questa velocità compromette l'accuratezza sia quando la differenza tra due movimenti risulta meno evidente, sia quando il numero di gesti da analizzare è maggiore.
+Il 2° modello è una variazione del primo modello lenet1D, dove si elimina il terzo stadio convoluzionale. Questa variazione permette di ridurre i tempo dell'allenamento, grazie all'eliminazione di uno stadio. Questa velocità però, compromette l'accuratezza sia quando la differenza tra due movimenti risulta meno evidente, sia quando il numero di gesti da analizzare è maggiore.
 
-Il modello quindi risulterà più performante quando la classificazione rimane binaria, mentre quando la classificazione avverrà con moltecipli gesti, l'accuratezza del modello andranno a peggiorare.
+Il modello, quindi, risulta più performante quando la classificazione rimane binaria, mentre l'accuratezza peggiora nel caso in cui sia necessario gestire ed analizzare molteplici gesti.
 
 #### 3.2.1 Struttura
 
-Come già accennato precedentemente, lo stile e il tipo di funzioni sono identici, con unica eccezione il numero di convoluzioni ridotto. La funzione **nn.Linear** avrà quindi un maggior numero di dati da analizzare, data la mancanza di un **nn.MaxPool1d**, il quale dimezzava la dimensione del tensore
+Come già accennato precedentemente, lo stile e il tipo di funzioni sono identici nei due modelli, con unica eccezione il numero di convoluzioni ridotto. La funzione **nn.Linear** avrà quindi un maggior numero di dati da analizzare, data la mancanza di un **nn.MaxPool1d**, il quale dimezzava la dimensione del tensore
 
 ### 3.3 3° Modello $\implies$ Multi-Scale 1D
 
@@ -147,11 +153,11 @@ Il 3° modello ha una struttura parallela, dove il primo stadio convoluzionale g
 
 La struttura del modello è composta da 2 blocchi convoluzionali, separati dalla funzione **torch.cat()**.
 
-La prima convoluzione è quella dove si scompone il dataset in due tensori, costruiti da 2 *kernel_size* differenti, i quali si concentrano su dettagli diversi del segnale. In questo modo, il modello è in grado di riconoscere il cambio di configurazione temporale e il valore delle variazioni microscopiche del segnale, portando a riconoscere con maggior facilità i vari gesti considerati
+Nella prima convoluzione si scompone il dataset in due tensori, costruiti da 2 *kernel_size* differenti, i quali si concentrano su dettagli diversi del segnale. In questo modo, il modello è in grado di riconoscere il cambio di configurazione temporale e il valore delle variazioni microscopiche del segnale, portando a riconoscere con maggior facilità i vari gesti presi in analisi.
 
 Dopo il primo stadio convoluzionale, i due tensori vengono aggregati tramite la funzione integrata *torch.cat*, la quale prende in ingresso i vari tensori e il termine per il quale concatenarli (in questo caso 1 perché rappresenta i filtri applicati al segnale, punto focale del modello parallelizzato).
 
-Successivamente il segnale passa per iil suo ultimo stadio convolutivo, dal quale il modello non ha ulteriore differenze rispetto agli altri.
+Da questo punto in poi il modello non presenta ulteriori differenze rispetto agli altri presi in esame nei punti 3.1 e 3.2.
 
 ```{python, echo=False}
 #| eval: false
@@ -181,11 +187,11 @@ self.fc1= nn.Linear(32*50, num_classes)
 
 ## 4. Training ed evaluation
 
-Come già definito anteriormente, per garantire che l'addestramento dell'algoritmo non influenzi la valutazione di quest'ultimo, è stato deciso di separare i dati rispetto agli individui, così che la valutazione avvenisse con segnali mai osservati e evitare l'*overfitting* per contaminazione dei dati. Seguendo questa logica sono stati separati anche i due programmi di *training* e *testing* a scopo organizzativo, migliorando l'interpretabilità di quest'ultimi.
+Come già definito precedentemente, per garantire che l'addestramento dell'algoritmo ne influenzi la valutazione, è stato deciso di separare i dati rispetto agli individui, cosicché la valutazione possa avvenire con segnali mai osservati e evitare l'*overfitting* per contaminazione dei dati. Seguendo questa logica sono stati separati anche i due programmi di *training* e *testing* a scopo organizzativo, migliorando l'interpretabilità di quest'ultimi.
 
 ### 4.0.1 Composizione training
 
-Questo programma svolge il *training loop* su una serie epoche. Il suo compito è alimentare l'algoritmo convoluzionale tramite i mini-batch, per poi calcolare la differenza tra le predizioni e la *ground truth*. Al fine di calcolare tale differenza, è stata scelta come *loss_function* la **Cross_Entropy_Loss**, poiché è la più adatta per i problemi di classifcazione, aumentando il valore di *loss* in base alla gravità dell'errore di predizione. Successivamente, il valore di errore si propaga all'indietro, aggiornando il valore dei pesi tramite l'ottimizzatore **Adam**, il più popolare tra gli ottimizzatori dato che regola il *learning rate* in base ai gradienti di ciascun peso, migliorando la convergenza della predizione.
+Questo programma svolge il *training loop* su una serie di epoche. Il suo compito è alimentare l'algoritmo convoluzionale tramite i mini-batch, per poi calcolare la differenza tra le predizioni e la *ground truth*. Al fine di calcolare tale differenza, è stata scelta come *loss_function* la **Cross_Entropy_Loss**, poiché è la più adatta per i problemi di classificazione, aumentando il valore di *loss* in base alla gravità dell'errore di predizione. Successivamente, il valore di errore si propaga, aggiornando il valore dei pesi tramite l'ottimizzatore **Adam**, il più popolare tra gli ottimizzatori siccome regola il *learning rate* in base ai gradienti di ciascun peso, migliorando la convergenza della predizione.
 
 Al termine di ogni epoca, il codice stampa la loss media e l'accuratezza temporanea di addestramento, in modo da verificare ad ogni istante la convergenza ed eventuali anomalie nel processo di apprendimento.
 
@@ -233,7 +239,7 @@ Modificando il *learning_rate*, si varia la velocità di variazione dei pesi del
 
 ### 4.0.2 Composizione *testing*
 
-Questo programma carica i pesi ottimali precedentemente ottenuti dal *training* e successivamente salvati all'interno del file *emg_lenet1d.pth* per poi procedere con la valutazione del modello tramite la funzione `model.eval()`, accompagnata da `torch.no_grad()` affinché l'algoritmo non calcoli il gradiente dei tensori, non unitlizzati durante la valutazine. Una volta completata la valutazione, il programma procede a stampare a schermo il risultato di accuratezza finale, da cui poi si concluderà se il modello è affidabile.
+Questo programma carica i pesi ottimali precedentemente ottenuti dal *training* e successivamente salvati all'interno del file *emg_lenet1d.pth,* per poi procedere con la valutazione del modello tramite la funzione `model.eval()`, accompagnata da `torch.no_grad()` affinché l'algoritmo non calcoli il gradiente dei tensori, non utilizzati durante la valutazine. Una volta completata la valutazione, il programma procede a stampare a schermo il risultato di accuratezza finale, da cui poi si concluderà se il modello è affidabile.
 
 ##### Codice
 
@@ -261,13 +267,13 @@ with torch.no_grad():
 
 ```
 
-## 5. Considerazioni sui risultati
+## 5. Analisi dei risultati
 
 ### 5.1 Classificazione binaria
 
 #### 1° Modello $\implies$ Lenet1D-3C
 
-Analizzando i temi di addestramento e l'accuratezza per ciascuna epoca, si può notare come la durata della prima epoca, nonché la sua accuratezza, sono drasticamente diverse rispetto alle restanti. Questo comportamento irregolare è dovuto principalmente ad operazioni all'**allocazione della memoria(RAM/VRAM)**, dove Pytorch richiede l'assegnazione di blocchi di memoria contigui all'interno della VRAM della GPU nel quale saranno caricati i tensori dei batch e i pesi dell'ottimizzatore. Questa esecuzione non avviene per ogni epoca, ma solo durante la prima richiesta, dopo la quale si andranno ad aggiornare gli stessi blocchi.
+Analizzando i temi di addestramento e l'accuratezza per ciascuna epoca, si può notare come la durata della prima epoca, nonché la sua accuratezza, siano drasticamente diverse rispetto alle restanti. Questo comportamento irregolare è dovuto principalmente ad operazioni di **allocazione della memoria(RAM/VRAM)**, dove Pytorch richiede l'assegnazione di blocchi di memoria contigui all'interno della VRAM della GPU nel quale saranno caricati i tensori dei batch e i pesi dell'ottimizzatore. Questa esecuzione non avviene per ogni epoca, ma solo durante la prima richiesta, dopo la quale vengono aggiornati i blocchi stessi.
 
 ```{python, echo=False}
 #| eval: false
@@ -344,13 +350,13 @@ Accuratezza finale è del $98.36 \%$ eseguita in $0.1929s$.
 
 #### Considerazioni e comparazioni
 
-Confrontando i risultati ottenuti dai tre modelli considerati, si può notare che per una classficazione binaria il risultato migliore sia ottenuto dal modello Lenet1D a due convoluzioni, garantendo l'accuratezza più alta con il tempo di training minore. Questo risultato era prevedibile e concorde alle caratteristiche del modello, dato che i tipi di gesti considerazioni sono molto differenti tra loro e non c'è necessità di analizzare a fondo i segnali per verificare anche i picchi improvvisi.
+Confrontando i risultati ottenuti dai tre modelli considerati, si può notare che per una classificazione binaria il risultato migliore sia ottenuto dal modello Lenet1D a due convoluzioni, garantendo l'accuratezza più alta con il tempo di training minore. Questo risultato era prevedibile e concorde alle caratteristiche del modello, dato che i tipi di gesti considerati sono molto differenti tra loro e non c'è necessità di analizzare a fondo i segnali per verificare anche i picchi improvvisi.
 
 ### 5.2 Classificazione a 7 gesti
 
-Per considerare bene i rsultati ottenuti è necessario inanzitutto definire quali sono i gesti analizzati: 0-mano a riposo, 1-mano a pugno, 2-flessione del polso, 3-estensione del polso, 4-deviazioni radiali, 5-deviazioni ulnirali e 6-mano aperta. L'ultima configurazione non è stata svolta da tutti i partecipanti, perciò l'accuratezza calerà per quella determinata configurazione.
+Per valutare correttamente i risultati ottenuti è necessario innanzitutto definire i gesti analizzati: 0-mano a riposo, 1-mano a pugno, 2-flessione del polso, 3-estensione del polso, 4-deviazioni radiali, 5-deviazioni ulnari e 6-mano aperta. L'ultima configurazione non è stata svolta da tutti i partecipanti, perciò l'accuratezza calerà per quella determinata configurazione.
 
-Siccome il numero di configurazioni da analizzare sono maggiori, si utilizza la **matrice di confusione** per migliorare la lettura e la comprensione dell'accuratezza della predizione in base alla configurazione stessa.
+Siccome il numero di configurazioni da analizzare è maggiore rispetto alla classificazione binaria vista in precedenza, si utilizza la **matrice di confusione** per migliorare la lettura e la comprensione dell'accuratezza della predizione in base alla configurazione stessa.
 
 #### 1° Modello $\implies$ Lenet1D-3C
 
@@ -376,8 +382,38 @@ Tempo di training è di $5.3605s$.
 
 L'aumento della complessità dell'analisi da 2 a 7 gesti ha provocato tempi di training leggermente più alti, facendo notare il maggior carico richiesto per poter definire con più accuratezza le varie configurazioni. Dai risultati raccolti si possono fare alcune considerazioni sulle principali caratteristiche, individuabili sui risultati di tutti e tre i modelli:
 
--   per la configurazione 6 (mano aperta), nessuno dei tre modelli è stato in grado di predirla. Questa mancanza è un fenomeno particolare che avviene per colpa di uno **sbilanciamento del dataset**. Come già definito da chi l'ha pubblicato, esso ha pochi dati riguardanti tale gesto, provocando che il modello non possa estrarre sufficienti *feature* e quindi classificare in maniera erronea tale movimento.
+-   per la configurazione 6 (mano aperta) non è stata predetta da nessuno dei 3 modelli. Questo **sbilanciamento del dataset** era già stato evidenziato dal creatore del dataset. Il modello quindi non è in grado di estrarre sufficienti *feature* e quindi classifica il movimento in maniera errata, confondendolo con configurazione similari(la deviazione ulnare).
 
--   Le configurazioni 2 e 5(flessione del polso e deviazione ulnirale), nonché 3 e 4 (estensione del polso e deviazione radiale), sono spesso confuse tra loro nel modello. Questo fenonemo è causato da **sinergia muscolare dei movimenti** e **bassa risoluzione degli strumenti di misura**. I muscoli che vengono attivati durante lo svolgimento di tali coppie sono molto simili tra loro, provocando che il modello spesso si confonda. Per la precisione, la coppia 2-5 condivide l'attivazione del muscolo flessore ulnare del carpo, mentre la coppia 3-4 condivide l'attivazione degli estensori radiali del carpo. Siccome le fibre muscolari sono sovrapposte tra loro, i sensori notano segnali sovrapposti, che generano errate letture nel modello.
+-   Le configurazioni 2 e 5(flessione del polso e deviazione ulnirale), nonché 3 e 4 (estensione del polso e deviazione radiale), sono spesso confuse tra loro nel modello. Questo fenomeno è causato da **sinergia muscolare dei movimenti** e **bassa risoluzione degli strumenti di misura**. I muscoli che vengono attivati durante lo svolgimento di tali coppie sono molto simili tra loro, provocando una confusione nel modello di analisi. Per la precisione, la coppia 2-5 condivide l'attivazione del muscolo flessore ulnare del carpo, mentre la coppia 3-4 condivide l'attivazione degli estensori radiali del carpo. Siccome le fibre muscolari sono sovrapposte tra loro, i sensori notano segnali sovrapposti, che generano errate letture nel modello.
 
-Per questa configurazione, il modello Lenet1D-2C, seppur mantendendo un tempo di allenamento rapido, è quello che presenta una minor accuratezza finale, anche se di poco. Il miglior modello per accuratezza è il modello Multi-Scale1D, che ottiene un risultato di $78,40\%$.
+Per questa configurazione, il modello Lenet1D-2C, seppur mantenendo un tempo di allenamento rapido, è quello che presenta una minor accuratezza finale(ma questa differenza è facilmente trascurabile). Il miglior modello per accuratezza è il modello Multi-Scale1D, che permette di ottenere un'accuratezza massima di $78,40\%$.
+
+## 6. Ottimizzazione del Modello e Risoluzione delle Criticità
+
+A fronte delle problematiche emerse durante la classificazione multiclasse (7 gesti), nello specifico la mancata predizione della "mano aperta" e la confusione tra gesti sinergici, si è proceduto nell'introdurre tecniche per ridurre tali criticità e rendere l'architettura *Multi-Scale1D* più robusta.
+
+### 6.1 Batch Normalization
+
+Per aiutare il modello a distinguere i movimenti con elevata sinergia muscolare (es. flessione vs estensione del polso), è stata inserita la funzione `nn.BatchNorm1d` dopo ogni layer convoluzionale e prima dell'attivazione ReLU. Questa tecnica normalizza le attivazioni intermedie del tensore, stabilizzando i gradienti e permettendo ai layer di convoluzione successivi di concentrarsi sulle differenze microscopiche.
+
+### 6.2 Dropout
+
+Aumentando la difficoltà dei *task,* il rischio che il modello impari "a memoria" cresce notevolmente. Per ovviare a questo problema, prima dell'ultimo layer lineare di classificazione, è stato inserito un layer di **Dropout** con probabilità $p=0.2$. Disattivando casualmente la metà dei neuroni ad ogni iterazione, si forza l'algoritmo a non dipendere da un singolo sensore dominante, costringendolo a imparare una rappresentazione più distribuita e generalizzabile del gesto.
+
+### 6.3 Learning Rate Scheduler
+
+Siccome il tasso di apprendimento può portare l'ottimizzatore a "rimbalzare" attorno al minimo globale senza mai raggiungerlo. Si è quindi integrato `optim.lr_scheduler.ReduceLROnPlateau`. Questo strumento monitora l'errore di valutazione (*Validation Loss*): se la rete smette di migliorare per 8 epoche consecutive (*patience=8*), lo *scheduler* dimezza automaticamente il *learning rate* (`factor=0.5`). Ciò permette all'ottimizzatori di affinare sempre più il modello durante la fase di addestramento, differenziando meglio ancora le classi più muscolarmente sinergiche.
+
+### 6.4 Weighted Random Sampler
+
+Per risolvere la totale assenza di predizioni per la configurazione 6, causata dal forte sbilanciamento delle classi nel dataset originale, si è optato per una strategia di campionamento ponderato. Invece di alterare i dati con rumore artificiale, si è implementato il modulo **WeightedRandomSampler** di PyTorch. L'algoritmo calcola le occorrenze di ciascuna classe (*torch.bincount*) e assegna a ogni campione un peso inversamente proporzionale alla frequenza della propria classe d'appartenenza. Configurando il parametro *replacement=True*, il *DataLoader* provvede a un sovracampionamento (*oversampling*) dinamico durante l'estrazione: i mini-batch risultano così uniformemente distribuiti, costringendo il modello a calcolare gradienti robusti anche per la classe più critica.
+
+### 6.5 Risultati
+
+![](Images/Confusion_matrix_Multi-Scale1D_perf.png){width="90%"}
+
+Valutando il modello sul Test Set, l'accuratezza globale è salita al **79.22%** (rispetto al precedente 78.40%), mantenendo un tempo di inferenza eccellente (0.25s).
+
+Analizzando la nuova matrice di confusione, emergono due conclusioni fondamentali sullo stato del sistema, ossia il **limite fisiologico sui movimenti sinergici:** Si osserva un generale miglioramento della diagonale principale (predizioni corrette). Tuttavia, permane una fisiologica percentuale di errore tra le coppie di movimenti sinergici, in particolar modo tra la classe 4 (deviazione radiale) spesso confusa con la 3 (estensione), e tra la classe 5 (deviazione ulnare) confusa con la 2 (flessione). Da questo dato si conclude che l'algoritmo abbia raggiunto il limite fisico dell'hardware. La risoluzione spaziale fornita dai soli 8 sensori sEMG non contiene informazioni elettriche sufficienti per separare in modo netto l'attivazione di fibre muscolari fisicamente sovrapposte nell'avambraccio.
+
+In conclusione, l'architettura *Multi-Scale1D* abbinata alle logiche di regolarizzazione (*Dropout*, *BatchNorm*) e bilanciamento (*WeightedSampler*) rappresentano un miglioramento generale dell'accuratezza senza rischio di *overfitting*, ma non è ancora in grado di riconoscere significativamente movimenti muscolarmente sinergici.

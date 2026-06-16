@@ -62,6 +62,7 @@ class EmgDataloader(object):
                     if int(user_id)<=24:
                         x_train.append(window)
                         y_train.append(window_label)
+
                     else:
                         x_test.append(window)
                         y_test.append(window_label)

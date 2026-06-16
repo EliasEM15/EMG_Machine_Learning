@@ -37,7 +37,7 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model=Emg(num_classes=NUM_CLASSES).to(device)
+model=EmgMultiScale(num_classes=NUM_CLASSES).to(device)
 print(f"Dispositivo utilizzato per la valutazione: {model.__class__.__name__}")
 model_filepath = base_path / "emg_lenet1d.pth"
 loss_function = nn.CrossEntropyLoss()

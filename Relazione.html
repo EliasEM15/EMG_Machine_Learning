@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Elias Ezequiel Moreno matricola n°244211">
+
+<title>Riconoscimento di Gesture tramite segnali EMG</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Relazione_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Relazione_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Relazione_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Relazione_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="Relazione_files/libs/quarto-html/popper.min.js"></script>
+<script src="Relazione_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Relazione_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Relazione_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Relazione_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Relazione_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Relazione_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Relazione_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Riconoscimento di Gesture tramite segnali EMG</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Elias Ezequiel Moreno matricola n°244211 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<hr>
+<p>format: pdf editor: visual —</p>
+<section id="definizione-del-problema-e-obiettivo" class="level2">
+<h2 class="anchored" data-anchor-id="definizione-del-problema-e-obiettivo">1. Definizione del Problema e Obiettivo</h2>
+<p>L’obiettivo di questo progetto è addestrare un modello di Deep Learning, valutandone le prestazioni nel riconoscimento dei gesti della mano.</p>
+<p>Il compito che deve svolgere il modello è l’analisi di segnali elettromiografici, ricavati da sensori posti sull’avambraccio. La prima analisi si è svolta con un dataset ridotto, impostando così il problema come una più semplice <strong>classificazione binaria</strong>, dove vengono dati al modello solo due tipi di gesti da riconoscere: <strong>Pugno</strong> e <strong>Mano a riposo</strong>.</p>
+</section>
+<section id="composizione-del-dataset-e-suddivisione-dei-dati" class="level2">
+<h2 class="anchored" data-anchor-id="composizione-del-dataset-e-suddivisione-dei-dati">2. Composizione del Dataset e suddivisione dei dati</h2>
+<p>Il dataset proveniente dalla <strong>UCI Machine Learning Repository</strong> è composto da 36 cartelle, ciascuna rappresentante un individuo sottoposto alle misurazioni tramite sEMG. L’analisi è stata eseguita tramite un dispositivo con 8 sensori equidistanti che raccogliono i segnali muscolari. Ad ogni partecipante è stato richiesto di svolgere due serie di 6/7 gesti svolti con la mano, ciascuno mantenuto per 3 secondi, seguiti da una fase di riposo di 3 secondi. I risultati dei vari sensori vengono poi salvati in un file di testo composto da 10 colonne:</p>
+<ul>
+<li><p><strong>1° Colonna</strong>: è la <strong>marcatura temporale</strong>, ossia l’istante di tempo in cui viene svolta l’azione;</p></li>
+<li><p><strong>2°- 9° Colonna</strong>: sono i valori grezzi dei <strong>segnali</strong> rilevati dagli 8 sensori;</p></li>
+<li><p><strong>10° Colonna</strong>: rappresenta la <strong>classe</strong>, ossia l’azione svolta dal soggetto in quell’istante (<em>Ground Truth</em> che il modello userà per comprendere i gesti)</p></li>
+</ul>
+<p>Per la classificazione binaria saranno analizzati i segnali temporali ricavati da <strong>mano a riposo</strong> e <strong>mano a pugno</strong>, rimappati per il corretto funzionamento del modello rispettivamente come 0 ed 1. Un valutazione iniziale era di differenziare tra mano a pugno e mano aperta, questo compito però sarebbe risultato inconcludente a causa del forte sbilanciamento di dati tra le due classi, portando il modello a rispondere “mano a pugno” nella maggior parte dei casi, poiché la probabilità di trovare un caso di “mano aperta”.</p>
+<p>Approfittando della configurazione del dataset, si è optato per dividere gli individui usati per il <em>training</em> e quelli invece usati per il <em>testing</em> in modo da evitare in qualsiasi modo il <strong><em>Data Leakage.</em></strong> In particolare, i primi 24 soggetti saranno usati per allenare il modello mentre i restanti saranno usati per verificare l’allenamento di quest’ultimo. Questa configurazione permette di verificare il modello con pattern e segnali muscolari totalmente nuovi e mai visti durante la fase di training, verificandone perfettamente l’accuratezza.</p>
+<section id="segmentazione-dei-segnali-implies-windowing" class="level3">
+<h3 class="anchored" data-anchor-id="segmentazione-dei-segnali-implies-windowing">2.1 Segmentazione dei segnali <span class="math inline">\(\implies\)</span> Windowing</h3>
+<p>Per poter utilizzare i valori grezzi dei sensori per allenare il modello di <em>Deep Learning</em> è necessario innanzitutto caricare i risultati attraverso una tecnica di segmentazione del segnale. Essa consiste nell’uso di una “finestra temporale” che scorre nel dataframe con passo di lunghezza inferiore alla grandezza di tale finestra, in modo da generare sovrapposizione tra due segmentazioni consecutive. In questo modo, si può garantire che si rilevi l’evoluzione nel tempo del segnale, mantenendo un elevato numero di campioni per l’addestramento.</p>
+<p>Siccome alcune finestre temporali possono rilevare dati durante un periodo di transizione, dove il gesto passa da una configurazione all’altra, si definisce come gesto principale di ogni finestra, quello con il maggior numero di elementi all’interno di essa.</p>
+<section id="frammento-di-codice-dove-si-applica-ciò-che-è-stato-definito-anteriormente" class="level4">
+<h4 class="anchored" data-anchor-id="frammento-di-codice-dove-si-applica-ciò-che-è-stato-definito-anteriormente">Frammento di codice dove si applica ciò che è stato definito anteriormente</h4>
+<div id="75d44129" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(sensor_ds) <span class="op">-</span> <span class="va">self</span>.window_size, <span class="va">self</span>.step_size):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Estrazione della finestra temporale per gli 8 canali</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    window <span class="op">=</span> sensor_ds[i : i <span class="op">+</span> <span class="va">self</span>.window_size]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Assegnazione del gesto principale per ogni finestra</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    window_label <span class="op">=</span> np.bincount(label_ds[i : i <span class="op">+</span> <span class="va">self</span>.window_size]).argmax()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Suddivisione per soggetti (Leave-Subjects-Out)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">int</span>(user_id) <span class="op">&lt;=</span> <span class="dv">24</span>:</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        x_train.append(window)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        y_train.append(window_label)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        x_test.append(window)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        y_test.append(window_label)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="normalizzazione-dei-tensori" class="level3">
+<h3 class="anchored" data-anchor-id="normalizzazione-dei-tensori">2.2 Normalizzazione dei tensori</h3>
+<p>Al fine di agevolare la convergenza dell’algoritmo durante la fase di addestramento del modello, è necessaria una normalizzazione dei valori grezzi ricavati dai sensori. I segnali da valutare infatti, variano a seconda della forza impressa da ciascun individuo, per questo motivo non può esseci un limite massimo e minimo come nel caso dei colori dei pixel (che vanno da 0 a 255). Date queste premesse si è optato per la normalizzazione di tali valori, calcolando media e deviazione standard del dataset, esclusa la parte dedicata alla valutazione. Questa decisione nasce per evitare che il modello abbia informazioni riguardanti il dataset di <em>testing</em>. Media e deviazione standard <span class="math inline">\(\mu\)</span> vengono successivamente applicati ad entrambi i dataset, aggiungendo a <span class="math inline">\(\mu\)</span> una costante <span class="math inline">\(\epsilon= 10^{-8}\)</span> per evitare casi in cui la deviazione standard sia pari a 0.</p>
+</section>
+<section id="codice" class="level3">
+<h3 class="anchored" data-anchor-id="codice">Codice:</h3>
+<div id="cf25ef97" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> preprocess_data(x_train, x_test):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calcolo media e deviazione standard del dataset per l'addestramento</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  mean <span class="op">=</span> np.mean(x_train, axis<span class="op">=</span>(<span class="dv">0</span>,<span class="dv">1</span>), keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  std <span class="op">=</span> np.std(x_train, axis<span class="op">=</span>(<span class="dv">0</span>,<span class="dv">1</span>), keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Normalizzazione</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  train_normalized <span class="op">=</span> (x_train <span class="op">-</span> mean) <span class="op">/</span> (std <span class="op">+</span> <span class="fl">1e-8</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  test_normalized <span class="op">=</span> (x_test <span class="op">-</span> mean) <span class="op">/</span> (std <span class="op">+</span> <span class="fl">1e-8</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Passaggio necessario per costruire i tensori</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  train_tensor <span class="op">=</span> torch.tensor(train_normalized, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  test_tensor <span class="op">=</span> torch.tensor(test_normalized, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Trasposizione degli assi </span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  train_tensor <span class="op">=</span> train_tensor.transpose(<span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  test_tensor <span class="op">=</span> test_tensor.transpose(<span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> train_tensor, test_tensor</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>La trasposizione è necessaria per adeguare il tensore alla forma richiesta dal modello [Batch, Input, window_size] anziché [Batch, window_size, Input].</p>
+</section>
+</section>
+<section id="composizione-modello" class="level2">
+<h2 class="anchored" data-anchor-id="composizione-modello">3. Composizione modello</h2>
+<section id="modello-implies-lenet1d-3c" class="level3">
+<h3 class="anchored" data-anchor-id="modello-implies-lenet1d-3c">3.1 1° Modello <span class="math inline">\(\implies\)</span> Lenet1D-3C</h3>
+<p>Il primo modello considerato è Lenet1D, che utilizza un’architettura CNN (<em>Convolutional Neural Network</em>) monodimensionale, ideale rispetto all’architettura bidimensionale data la struttura del nostro dataset. Questa rete neurale infatti, risulta ottima per l’analisi di pattern all’interno di dati sequenziali, come nel caso di segnali EMG.</p>
+<section id="struttura" class="level4">
+<h4 class="anchored" data-anchor-id="struttura">3.1.1 Struttura</h4>
+<p>La rete neurale è strutturata su tre blocchi convoluzionali, seguiti da una classificazione lineare (<em>Fully connected</em>). Questa combinazione è scelta per permettere di estrarre i picchi dei segnali muscolari per ciascuno degli 8 valori di ingresso, mantenendo così le correlazioni temporali.</p>
+<p>Ogni blocco convoluzionale è composto da 3 funzioni:</p>
+<ul>
+<li><p><strong>nn.Conv1d</strong> applica i filtri convoluzionali ad una sequenza di dati definita come <em>kernel</em>, la cui lunghezza risulta pari a quella definita da <em>kernel_size</em>. <em>Stride</em> definisce il passo dopo il quale si studierà il seguente kernel. Il <em>padding</em> serve ad aggiungere una serie di zeri ai bordi del dataset per preservare le dimensioni del segnale originale.</p></li>
+<li><p><strong>nn.ReLU</strong> è una funzione di attivazione la cui formula è <span class="math inline">\(f(x)=max(0, x)\)</span>. Lo scopo è introdurre non linearità, fondamentale nelle reti neurali per poter risolvere problemi complessi. Inoltre, grazie a essa, si elimina la possibilità di annullamento del gradiente( <em>Vanishing Gradient</em>). Questo fenomeno si presenta quando il valore dei gradienti raggiungono lo 0 durante la <em>backpropagation</em>, non permettendo quindi al modello di aggiornare i propri pesi, bloccando il <em>training.</em></p></li>
+<li><p><strong>nn.MaxPool1d</strong> svolge un sottocampionamento per ridurre la lunghezza del tensore considerato, riducendo i calcoli per i layer successivi e la sensibilità della rete neurale alle piccole variazioni temporali del segnale</p></li>
+</ul>
+<p><strong>nn.Linear</strong> è una funzione che rileva ogni <em>feature</em> estratta dalle convoluzioni precedenti e ne ricava un valore per ciascuna configurazione analizzata tramite l’equazione vettoriale <span class="math inline">\(y = xA^T+b\)</span>, dove <span class="math inline">\(x\)</span> è l’input, <span class="math inline">\(A\)</span> sono i pesi contrassegnati e <span class="math inline">\(b\)</span> è il termine di bias.</p>
+<div id="12623a34" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.c1<span class="op">=</span>nn.Conv1d(in_channels<span class="op">=</span><span class="dv">8</span>, out_channels<span class="op">=</span><span class="dv">16</span>, kernel_size<span class="op">=</span> <span class="dv">5</span>, stride<span class="op">=</span> <span class="dv">1</span>, </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        padding<span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.r1 <span class="op">=</span> nn.ReLU()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.p1 <span class="op">=</span> nn.MaxPool1d(kernel_size<span class="op">=</span><span class="dv">2</span>, stride<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#2° Blocco Convoluzionale</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#input [16, 100] -&gt; dopo conv2 -&gt; [32, 100] -&gt; dopo il Pool -&gt; [32, 50]</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.c2<span class="op">=</span>nn.Conv1d(in_channels<span class="op">=</span><span class="dv">16</span>, out_channels<span class="op">=</span><span class="dv">32</span>, kernel_size<span class="op">=</span><span class="dv">5</span>, stride<span class="op">=</span><span class="dv">1</span>, </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        padding<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.r2<span class="op">=</span>nn.ReLU()</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.p2<span class="op">=</span>nn.MaxPool1d(kernel_size<span class="op">=</span><span class="dv">2</span>, stride<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">#3° Blocco Convoluzionale</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">#input -&gt; [32, 50] -&gt; dopo conv3 -&gt; [128, 1]</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.c3<span class="op">=</span>nn.Conv1d(in_channels<span class="op">=</span><span class="dv">32</span>, out_channels<span class="op">=</span><span class="dv">128</span>, kernel_size<span class="op">=</span><span class="dv">50</span>, stride<span class="op">=</span><span class="dv">1</span>, </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        padding<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.r3<span class="op">=</span>nn.ReLU()</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.fc1<span class="op">=</span> nn.Linear(<span class="dv">128</span>, num_classes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="modello-implies-lenet1d-2c" class="level3">
+<h3 class="anchored" data-anchor-id="modello-implies-lenet1d-2c">3.2 2° Modello <span class="math inline">\(\implies\)</span> Lenet1D-2C</h3>
+<p>Il 2° modello è una variazione del primo, dove si elimina il terzo stadio convoluzionale. Questa variazione risulta molto più rapida da allenare data l’eliminazione di uno stadio, verificando a livello macroscopico i valori. Questa velocità compromette l’accuratezza sia quando la differenza tra due movimenti risulta meno evidente, sia quando il numero di gesti da analizzare è maggiore.</p>
+<p>Il modello quindi risulterà più performante quando la classificazione rimane binaria, mentre quando la classificazione avverrà con moltecipli gesti, l’accuratezza del modello andrà a peggiorare.</p>
+<section id="struttura-1" class="level4">
+<h4 class="anchored" data-anchor-id="struttura-1">3.2.1 Struttura</h4>
+<p>Come già accennato precedentemente, lo stile e il tipo di funzioni sono identici, con unica eccezione il numero di convoluzioni ridotto. La funzione <strong>nn.Linear</strong> avrà quindi un maggior numero di dati da analizzare, data la mancanza di un <strong>nn.MaxPool1d</strong>, il quale dimezzava la dimensione del tensore</p>
+</section>
+</section>
+<section id="modello-implies-multi-scale-1d" class="level3">
+<h3 class="anchored" data-anchor-id="modello-implies-multi-scale-1d">3.3 3° Modello <span class="math inline">\(\implies\)</span> Multi-Scale 1D</h3>
+<p>Il 3° modello ha una struttura parallela, dove il primo stadio convoluzionale genera due tensori di misure differenti. Questo metodo permette un’analisi del segnale macroscopica (variazioni temporali) e microscopica (analisi dei segnali istantanei del muscolo).</p>
+<section id="struttura-2" class="level4">
+<h4 class="anchored" data-anchor-id="struttura-2">3.3.1 Struttura</h4>
+<p>La struttura del modello è composta da 2 blocchi convoluzionali, separati dalla funzione <strong>torch.cat()</strong>.</p>
+<p>La prima convoluzione è quella dove si scompone il dataset in due tensori, costruiti da 2 <em>kernel_size</em> differenti, i quali si concentrano su dettagli diversi del segnale. In questo modo, il modello è in grado di riconoscere il cambio di configurazione temporale e il valore delle variazioni microscopiche del segnale, portando a riconoscere con maggior facilità i vari gesti considerati</p>
+<p>Dopo il primo stadio convoluzionale, i due tensori vengono aggregati tramite la funzione integrata <em>torch.cat</em>, la quale prende in ingresso i vari tensori e il termine per il quale concatenarli (in questo caso 1 perché rappresenta i filtri applicati al segnale, punto focale del modello parallelizzato).</p>
+<p>Successivamente il segnale passa per il suo ultimo stadio convolutivo, dal quale il modello non ha ulteriori differenze rispetto agli altri.</p>
+<div id="89dd962c" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.c1_1<span class="op">=</span> nn.Conv1d(in_channels<span class="op">=</span><span class="dv">8</span>, out_channels<span class="op">=</span><span class="dv">16</span>, kernel_size<span class="op">=</span> <span class="dv">3</span>, stride<span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>          padding<span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.r1_1<span class="op">=</span> nn.ReLU()</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.p1_1<span class="op">=</span> nn.MaxPool1d(kernel_size<span class="op">=</span><span class="dv">2</span>, stride<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#2° Ramo</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.c1_2<span class="op">=</span> nn.Conv1d(in_channels<span class="op">=</span><span class="dv">8</span>, out_channels<span class="op">=</span><span class="dv">16</span>, kernel_size<span class="op">=</span> <span class="dv">11</span>, stride<span class="op">=</span> <span class="dv">1</span>, </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>          padding<span class="op">=</span> <span class="dv">5</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.r1_2<span class="op">=</span> nn.ReLU()</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.p1_2<span class="op">=</span> nn.MaxPool1d(kernel_size<span class="op">=</span><span class="dv">2</span>, stride<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#3° Convoluzione comune</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#si considerano 32 input perché, dopo l'unione delle due convoluzioni, </span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#il numero di output si sommano</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.c2<span class="op">=</span> nn.Conv1d(in_channels<span class="op">=</span><span class="dv">32</span>, out_channels<span class="op">=</span><span class="dv">32</span>, kernel_size<span class="op">=</span> <span class="dv">5</span>, stride<span class="op">=</span> <span class="dv">1</span>, </span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        padding<span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.r2<span class="op">=</span> nn.ReLU()</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.p2<span class="op">=</span> nn.MaxPool1d(kernel_size<span class="op">=</span><span class="dv">2</span>, stride<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co">#4° fully_connected</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="va">self</span>.fc1<span class="op">=</span> nn.Linear(<span class="dv">32</span><span class="op">*</span><span class="dv">50</span>, num_classes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+</section>
+<section id="training-ed-evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="training-ed-evaluation">4. Training ed evaluation</h2>
+<p>Come già definito anteriormente, per garantire che l’addestramento dell’algoritmo non influenzi la valutazione di quest’ultimo, è stato deciso di separare i dati rispetto agli individui, così che la valutazione avvenisse con segnali mai osservati e evitare l’<em>overfitting</em> per contaminazione dei dati. Seguendo questa logica sono stati separati anche i due programmi di <em>training</em> e <em>testing</em> a scopo organizzativo, migliorando l’interpretabilità di quest’ultimi.</p>
+<section id="composizione-training" class="level3">
+<h3 class="anchored" data-anchor-id="composizione-training">4.0.1 Composizione training</h3>
+<p>Questo programma svolge il <em>training loop</em> su una serie epoche. Il suo compito è alimentare l’algoritmo convoluzionale tramite i mini-batch, per poi calcolare la differenza tra le predizioni e la <em>ground truth</em>. Al fine di calcolare tale differenza, è stata scelta come <em>loss_function</em> la <strong>Cross_Entropy_Loss</strong>, poiché è la più adatta per i problemi di classificazione, aumentando il valore di <em>loss</em> in base alla gravità dell’errore di predizione. Successivamente, il valore di errore si propaga all’indietro, aggiornando il valore dei pesi tramite l’ottimizzatore <strong>Adam</strong>, il più popolare tra gli ottimizzatori dato che regola il <em>learning rate</em> in base ai gradienti di ciascun peso, migliorando la convergenza della predizione.</p>
+<p>Al termine di ogni epoca, il codice stampa la loss media e l’accuratezza temporanea di addestramento, in modo da verificare ad ogni istante la convergenza ed eventuali anomalie nel processo di apprendimento.</p>
+<section id="codice-1" class="level5">
+<h5 class="anchored" data-anchor-id="codice-1">Codice</h5>
+<div id="954cf0aa" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(EPOCHS):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    epoch_start_time <span class="op">=</span> time()</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    model.train()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#usiamo r_loss per calcolare l'errore per ogni epoca in modo da capire se</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#l'errore diminuisce</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    r_loss<span class="op">=</span><span class="fl">0.0</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">#usiamo correct_train e total_train per calcolare l'accuratezza </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#del modello: Se l'accuratezza è troppo alta probabilmente sta andando in overfitting</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    correct_train<span class="op">=</span><span class="fl">0.0</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    total_train<span class="op">=</span><span class="fl">0.0</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> inputs, labels <span class="kw">in</span> train_loader:</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        inputs, labels<span class="op">=</span> inputs.to(device), labels.to(device)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        outputs <span class="op">=</span> model(inputs)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        loss<span class="op">=</span> loss_function(outputs, labels)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        optimizer.zero_grad()</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        loss.backward()</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        optimizer.step()</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        r_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="co">#a parte il calcolo della loss si aggiunge il calcolo dell'accuratezza </span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        <span class="co">#per ogni epoca, in modo da verificare eventuali overfittimg</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        _, predicted<span class="op">=</span>torch.<span class="bu">max</span>(outputs.data, <span class="dv">1</span>)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        total_train<span class="op">+=</span> labels.size(<span class="dv">0</span>)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        correct_train<span class="op">+=</span> (predicted<span class="op">==</span>labels).<span class="bu">sum</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="configurazione-di-batch_size-e-learning_rate" class="level5">
+<h5 class="anchored" data-anchor-id="configurazione-di-batch_size-e-learning_rate">Configurazione di Batch_size e Learning_rate</h5>
+<p>Durante il <em>training</em> del modello, è importante definire il valore delle variabili <strong>Batch_size</strong> e <strong>Learning_rate</strong>. Modificando il <em>batch_size</em>, possiamo variare la dimensione del tensore dei gradienti: se esso risulta troppo piccolo, l’addestramento diventa più lento, mentre se il valore è troppo alto, la dimensione del tensore diventa troppo grande per essere contenuto all’interno della VRAM, portando il codice in crash (Cuda Out of Memory).</p>
+<p>Modificando il <em>learning_rate</em>, si varia la velocità di variazione dei pesi dell’ottimizzatore. Se il valore è troppo piccolo, il modello impiegherà molto tempo per ridurre l’errore minimo, mentre se il valore è troppo alto, la <em>loss</em> diverge, non raggiungendo mai un valore di errore soddisfacente.</p>
+</section>
+</section>
+<section id="composizione-testing" class="level3">
+<h3 class="anchored" data-anchor-id="composizione-testing">4.0.2 Composizione <em>testing</em></h3>
+<p>Questo programma carica i pesi ottimali precedentemente ottenuti dal <em>training</em> e successivamente salvati all’interno del file <em>emg_lenet1d.pth</em> per poi procedere con la valutazione del modello tramite la funzione <code>model.eval()</code>, accompagnata da <code>torch.no_grad()</code> affinché l’algoritmo non calcoli il gradiente dei tensori, non utilizzati durante la valutazine. Una volta completata la valutazione, il programma procede a stampare a schermo il risultato di accuratezza finale, da cui poi si concluderà se il modello è affidabile.</p>
+<section id="codice-2" class="level5">
+<h5 class="anchored" data-anchor-id="codice-2">Codice</h5>
+<div id="83bdd586" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> torch.no_grad():</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    total <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Ciclo sui dati del Test Set (gli utenti rimasti fuori dall'addestramento)</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> inputs, labels <span class="kw">in</span> test_loader:</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        inputs, labels <span class="op">=</span> inputs.to(device), labels.to(device)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passaggio in avanti</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        outputs <span class="op">=</span> model(inputs)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Troviamo il gesto con il punteggio più alto (0 o 1)</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        _, predicted <span class="op">=</span> torch.<span class="bu">max</span>(outputs.data, <span class="dv">1</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Accumuliamo il totale delle finestre e quelle indovinate</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        total <span class="op">+=</span> labels.size(<span class="dv">0</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        correct <span class="op">+=</span> (predicted <span class="op">==</span> labels).<span class="bu">sum</span>().item()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+</section>
+<section id="considerazioni-sui-risultati" class="level2">
+<h2 class="anchored" data-anchor-id="considerazioni-sui-risultati">5. Considerazioni sui risultati</h2>
+<section id="classificazione-binaria" class="level3">
+<h3 class="anchored" data-anchor-id="classificazione-binaria">5.1 Classificazione binaria</h3>
+<section id="modello-implies-lenet1d-3c-1" class="level4">
+<h4 class="anchored" data-anchor-id="modello-implies-lenet1d-3c-1">1° Modello <span class="math inline">\(\implies\)</span> Lenet1D-3C</h4>
+<p>Analizzando i temi di addestramento e l’accuratezza per ciascuna epoca, si può notare come la durata della prima epoca, nonché la sua accuratezza, sono drasticamente diverse rispetto alle restanti. Questo comportamento irregolare è dovuto principalmente ad operazioni di <strong>allocazione della memoria(RAM/VRAM)</strong>, dove Pytorch richiede l’assegnazione di blocchi di memoria contigui all’interno della VRAM della GPU nel quale saranno caricati i tensori dei batch e i pesi dell’ottimizzatore. Questa esecuzione non avviene per ogni epoca, ma solo durante la prima richiesta, dopo la quale si andranno ad aggiornare gli stessi blocchi.</p>
+<div id="455c6587" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">1</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.2429</span>,   Acc: <span class="fl">89.7468</span>,   elapsed time: <span class="fl">0.3618</span> seconds</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">2</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0766</span>,   Acc: <span class="fl">97.3132</span>,   elapsed time: <span class="fl">0.1217</span> seconds</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">3</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0482</span>,   Acc: <span class="fl">98.5485</span>,   elapsed time: <span class="fl">0.1213</span> seconds</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">4</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0315</span>,   Acc: <span class="fl">99.0117</span>,   elapsed time: <span class="fl">0.1202</span> seconds</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">5</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0194</span>,   Acc: <span class="fl">99.3515</span>,   elapsed time: <span class="fl">0.1194</span> seconds</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">6</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0167</span>,   Acc: <span class="fl">99.4750</span>,   elapsed time: <span class="fl">0.1191</span> seconds</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">7</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0099</span>,   Acc: <span class="fl">99.7838</span>,   elapsed time: <span class="fl">0.1122</span> seconds</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">8</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0067</span>,   Acc: <span class="fl">99.9073</span>,   elapsed time: <span class="fl">0.1087</span> seconds</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">9</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0047</span>,   Acc: <span class="fl">99.9382</span>,   elapsed time: <span class="fl">0.1042</span> seconds</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">10</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0041</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1061</span> seconds</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">11</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0027</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1088</span> seconds</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">12</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0022</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1092</span> seconds</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">13</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0015</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1120</span> seconds</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">14</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0012</span>,   Acc: <span class="fl">100.0000</span>,  elapsed time: <span class="fl">0.1140</span> seconds</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">15</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0010</span>,   Acc: <span class="fl">100.0000</span>,  elapsed time: <span class="fl">0.1096</span> seconds</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>Training completed <span class="kw">in</span> <span class="fl">1.9601</span> seconds</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Dopo aver concluso la valutazione, LeNet-1D ha raggiunto un’accuratezza finale di <span class="math inline">\(97.86\%\)</span> in un tempo di <span class="math inline">\(0.1807s\)</span>. Si può affermare che questo risultato non è dovuto a <em>Data Leakage</em> grazie a tutte le decisioni riguardanti l’isolamento dei dataset. Inoltre, da un risultato così elevato, si conclude che il numero di epoche selezionato è attorno al valore ideale, poiché il modello non è andato in <em>overfitting</em>.</p>
+</section>
+<section id="modello-implies-lenet1d-2c-1" class="level4">
+<h4 class="anchored" data-anchor-id="modello-implies-lenet1d-2c-1">2° Modello <span class="math inline">\(\implies\)</span> Lenet1D-2C</h4>
+<div id="bcf6d2a9" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">1</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.3250</span>,   Acc: <span class="fl">83.5392</span>,   elapsed time: <span class="fl">0.3279</span> seconds</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">2</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0909</span>,   Acc: <span class="fl">97.1587</span>,   elapsed time: <span class="fl">0.0963</span> seconds</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">3</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0672</span>,   Acc: <span class="fl">97.9617</span>,   elapsed time: <span class="fl">0.0911</span> seconds</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">4</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0536</span>,   Acc: <span class="fl">98.3941</span>,   elapsed time: <span class="fl">0.0875</span> seconds</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">5</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0464</span>,   Acc: <span class="fl">98.7029</span>,   elapsed time: <span class="fl">0.0911</span> seconds</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">6</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0387</span>,   Acc: <span class="fl">98.7647</span>,   elapsed time: <span class="fl">0.0935</span> seconds</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">7</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0349</span>,   Acc: <span class="fl">98.7956</span>,   elapsed time: <span class="fl">0.0881</span> seconds</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">8</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0248</span>,   Acc: <span class="fl">99.1970</span>,   elapsed time: <span class="fl">0.0925</span> seconds</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">9</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0272</span>,   Acc: <span class="fl">99.0735</span>,   elapsed time: <span class="fl">0.0890</span> seconds</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">10</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0196</span>,   Acc: <span class="fl">99.2588</span>,   elapsed time: <span class="fl">0.0988</span> seconds</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">11</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0165</span>,   Acc: <span class="fl">99.4750</span>,   elapsed time: <span class="fl">0.0861</span> seconds</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">12</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0173</span>,   Acc: <span class="fl">99.4441</span>,   elapsed time: <span class="fl">0.0911</span> seconds</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">13</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0139</span>,   Acc: <span class="fl">99.4750</span>,   elapsed time: <span class="fl">0.0910</span> seconds</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">14</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0110</span>,   Acc: <span class="fl">99.6912</span>,   elapsed time: <span class="fl">0.0889</span> seconds</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">15</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0091</span>,   Acc: <span class="fl">99.8147</span>,   elapsed time: <span class="fl">0.0887</span> seconds</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>Training completed <span class="kw">in</span> <span class="fl">1.6152</span> seconds</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Accuratezza finale è del <span class="math inline">\(98.74 \%\)</span> eseguita in <span class="math inline">\(0.1598s\)</span>.</p>
+</section>
+<section id="modello-implies-multi-scale1d" class="level4">
+<h4 class="anchored" data-anchor-id="modello-implies-multi-scale1d">3° Modello <span class="math inline">\(\implies\)</span> Multi-Scale1D</h4>
+<div id="45ee0345" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">1</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.3011</span>,   Acc: <span class="fl">85.6702</span>,   elapsed time: <span class="fl">0.3614</span> seconds</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">2</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0754</span>,   Acc: <span class="fl">97.8073</span>,   elapsed time: <span class="fl">0.1112</span> seconds</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">3</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0429</span>,   Acc: <span class="fl">98.7338</span>,   elapsed time: <span class="fl">0.1068</span> seconds</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">4</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0318</span>,   Acc: <span class="fl">99.1662</span>,   elapsed time: <span class="fl">0.1032</span> seconds</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">5</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0238</span>,   Acc: <span class="fl">99.2279</span>,   elapsed time: <span class="fl">0.1055</span> seconds</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">6</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0161</span>,   Acc: <span class="fl">99.4132</span>,   elapsed time: <span class="fl">0.1053</span> seconds</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">7</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0140</span>,   Acc: <span class="fl">99.5985</span>,   elapsed time: <span class="fl">0.1053</span> seconds</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">8</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0093</span>,   Acc: <span class="fl">99.7221</span>,   elapsed time: <span class="fl">0.1030</span> seconds</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">9</span><span class="op">/</span><span class="dv">15</span>],    Loss: <span class="fl">0.0080</span>,   Acc: <span class="fl">99.7838</span>,   elapsed time: <span class="fl">0.1033</span> seconds</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">10</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0057</span>,   Acc: <span class="fl">99.9073</span>,   elapsed time: <span class="fl">0.1113</span> seconds</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">11</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0046</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1045</span> seconds</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">12</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0037</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1026</span> seconds</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">13</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0032</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1020</span> seconds</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">14</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0027</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1023</span> seconds</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>Epoch [<span class="dv">15</span><span class="op">/</span><span class="dv">15</span>],   Loss: <span class="fl">0.0023</span>,   Acc: <span class="fl">99.9691</span>,   elapsed time: <span class="fl">0.1107</span> seconds</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>Training completed <span class="kw">in</span> <span class="fl">1.8511</span> seconds</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Accuratezza finale è del <span class="math inline">\(98.36 \%\)</span> eseguita in <span class="math inline">\(0.1929s\)</span>.</p>
+</section>
+<section id="considerazioni-e-comparazioni" class="level4">
+<h4 class="anchored" data-anchor-id="considerazioni-e-comparazioni">Considerazioni e comparazioni</h4>
+<p>Confrontando i risultati ottenuti dai tre modelli considerati, si può notare che per una classificazione binaria il risultato migliore sia ottenuto dal modello Lenet1D a due convoluzioni, garantendo l’accuratezza più alta con il tempo di training minore. Questo risultato era prevedibile e concorde alle caratteristiche del modello, dato che i tipi di gesti considerati sono molto differenti tra loro e non c’è necessità di analizzare a fondo i segnali per verificare anche i picchi improvvisi.</p>
+</section>
+</section>
+<section id="classificazione-a-7-gesti" class="level3">
+<h3 class="anchored" data-anchor-id="classificazione-a-7-gesti">5.2 Classificazione a 7 gesti</h3>
+<p>Per considerare bene i risultati ottenuti è necessario innanzitutto definire quali sono i gesti analizzati: 0-mano a riposo, 1-mano a pugno, 2-flessione del polso, 3-estensione del polso, 4-deviazioni radiali, 5-deviazioni ulnari e 6-mano aperta. L’ultima configurazione non è stata svolta da tutti i partecipanti, perciò l’accuratezza calerà per quella determinata configurazione.</p>
+<p>Siccome il numero di configurazioni da analizzare sono maggiori, si utilizza la <strong>matrice di confusione</strong> per migliorare la lettura e la comprensione dell’accuratezza della predizione in base alla configurazione stessa.</p>
+<section id="modello-implies-lenet1d-3c-2" class="level4">
+<h4 class="anchored" data-anchor-id="modello-implies-lenet1d-3c-2">1° Modello <span class="math inline">\(\implies\)</span> Lenet1D-3C</h4>
+<p><img src="Images/Confusion_matrix_Lenet1D-3C.png" class="img-fluid" style="width:90.0%"></p>
+<p>Tempo di training è di <span class="math inline">\(5.2802s\)</span></p>
+</section>
+<section id="modello-implies-lenet1d-2c-2" class="level4">
+<h4 class="anchored" data-anchor-id="modello-implies-lenet1d-2c-2">2° Modello <span class="math inline">\(\implies\)</span> Lenet1D-2C</h4>
+<p><img src="Images/Confusion_matrix_Lenet1D-2C.png" class="img-fluid" style="width:90.0%"></p>
+<p>Tempo di training è di <span class="math inline">\(4.5609s\)</span></p>
+</section>
+<section id="modello-implies-multi-scale1d-1" class="level4">
+<h4 class="anchored" data-anchor-id="modello-implies-multi-scale1d-1">3° Modello <span class="math inline">\(\implies\)</span> Multi-Scale1D</h4>
+<p><img src="Images/Confusion_matrix_Multi-Scale1D.png" class="img-fluid" style="width:90.0%"></p>
+<p>Tempo di training è di <span class="math inline">\(5.3605s\)</span>.</p>
+</section>
+<section id="considerazioni-e-comparazioni-1" class="level4">
+<h4 class="anchored" data-anchor-id="considerazioni-e-comparazioni-1">Considerazioni e comparazioni</h4>
+<p>L’aumento della complessità dell’analisi da 2 a 7 gesti ha provocato tempi di training leggermente più alti, facendo notare il maggior carico richiesto per poter definire con più accuratezza le varie configurazioni. Dai risultati raccolti si possono fare alcune considerazioni sulle principali caratteristiche, individuabili sui risultati di tutti e tre i modelli:</p>
+<ul>
+<li><p>per la configurazione 6 (mano aperta), nessuno dei tre modelli è stato in grado di predirla. Questa mancanza è un fenomeno particolare che avviene per colpa di uno <strong>sbilanciamento del dataset</strong>. Come già definito da chi l’ha pubblicato, esso ha pochi dati riguardanti tale gesto, provocando che il modello non possa estrarre sufficienti <em>feature</em> e quindi classificare in maniera erronea tale movimento.</p></li>
+<li><p>Le configurazioni 2 e 5(flessione del polso e deviazione ulnirale), nonché 3 e 4 (estensione del polso e deviazione radiale), sono spesso confuse tra loro nel modello. Questo fenomeno è causato da <strong>sinergia muscolare dei movimenti</strong> e <strong>bassa risoluzione degli strumenti di misura</strong>. I muscoli che vengono attivati durante lo svolgimento di tali coppie sono molto simili tra loro, provocando che il modello spesso si confonda. Per la precisione, la coppia 2-5 condivide l’attivazione del muscolo flessore ulnare del carpo, mentre la coppia 3-4 condivide l’attivazione degli estensori radiali del carpo. Siccome le fibre muscolari sono sovrapposte tra loro, i sensori notano segnali sovrapposti, che generano errate letture nel modello.</p></li>
+</ul>
+<p>Per questa configurazione, il modello Lenet1D-2C, seppur mantenendo un tempo di allenamento rapido, è quello che presenta una minor accuratezza finale, anche se di poco. Il miglior modello per accuratezza è il modello Multi-Scale1D, che ottiene un risultato di <span class="math inline">\(78,40\%\)</span>.</p>
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

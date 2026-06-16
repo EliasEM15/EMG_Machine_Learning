@@ -3,14 +3,14 @@ from time import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset, DataLoader, WeightedRandomSampler
 from Emg_dataset import EmgDataloader, preprocess_data
 from Emg_model import Emg, EmgStandard, EmgMultiScale
 
 
 #def train_model():
 BATCH_SIZE = 64      
-EPOCHS = 125        
+EPOCHS = 40       
 LEARNING_RATE = 0.001
 NUM_CLASSES= 7
 
@@ -29,16 +29,23 @@ y_test= torch.tensor(y_test, dtype=torch.long)
 #preparazione dei dataLoaders. Bisogna fare un passaggio ulteriore dato che in uscita a preprocess_data non ho un unico dataset
 train_ds= TensorDataset(x_train, y_train)
 test_ds= TensorDataset(x_test, y_test)
-train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
+
+class_counts= torch.bincount(y_train)
+class_weights = 1.0 / class_counts.float()
+sample_weights = class_weights[y_train]
+sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+
+train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, sampler=sampler)
 test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 
 #setup del training
 device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model=Emg(num_classes=NUM_CLASSES).to(device)
+model=EmgMultiScale(num_classes=NUM_CLASSES).to(device)
 print(f"Dispositivo utilizzato per l'allenamento: {model.__class__.__name__}")
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=8)
 
 training_start_time= time()
 
@@ -71,6 +78,18 @@ for epoch in range(EPOCHS):
 
     epoch_end_time=time()
     epoch_time = epoch_end_time - epoch_start_time
+
+    model.eval()
+    test_loss = 0.0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            t_loss = loss_function(outputs, labels)
+            test_loss += t_loss.item()
+            
+    avg_test_loss = test_loss / len(test_loader)
+    scheduler.step(avg_test_loss)
 
     print(f"Epoch [{epoch+1}/{EPOCHS}],\t Loss: {r_loss/len(train_loader):.4f},\t Acc: {(correct_train / total_train) * 100:.4f},\t elapsed time: {epoch_time:.4f} seconds")
 
